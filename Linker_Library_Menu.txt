@@ -1,0 +1,22 @@
+These configuration changes must be made in the stimulus generating program (or project path) to link the NI functions and libraries.  
+
+Configuration Properties>>C/C++>>General>>Additional Include Directories>>
+"C:\Program Files\National Instruments\NI-DAQ\DAQmx ANSI C Dev\include";"$(UEIDAQROOT)\CPP\include"
+
+Configuration Properties>>Linker>>General>>Additional Library Dependencies>> 
+"C:\Program Files\National Instruments\NI-DAQ\DAQmx ANSI C Dev\lib\msvc";"$(UEIDAQROOT)\CPP\lib"
+
+Configuration Properties>>Linker>>Input>>Additional Dependencies>>
+odbc32.lib odbccp32.lib nidaqmx.lib
+
+
+Right click on GREEN Menu icon and specify the path to the .exe file. 
+
+Current PATH to flicker generating program:
+Target : "C:\Documents and Settings\LED\My Documents\Visual Studio Projects\PhysDataAcq_FlickerMotion\PhysDataAcq_FlickerMotion\Debug\PhysDataAcq_FlickerMotion.exe"
+Start in : "C:\Documents and Settings\LED\My Documents\Visual Studio Projects\PhysDataAcq_FlickerMotion\PhysDataAcq_FlickerMotion\Debug"
+
+PATH to the interpolation program: 
+Target : "C:\Documents and Settings\LED\My Documents\Visual Studio Projects\PhysDataAcq\PhysDataAcq\Release\PhysDataAcq.exe"
+Start in : "C:\Documents and Settings\LED\My Documents\Visual Studio Projects\PhysDataAcq\PhysDataAcq\Release"
+
