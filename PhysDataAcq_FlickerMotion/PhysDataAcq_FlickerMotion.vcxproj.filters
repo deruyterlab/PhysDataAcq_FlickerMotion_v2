@@ -131,13 +131,25 @@
     <ClInclude Include="DynamicRandGen.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="NIDAQmx.h">
-      <Filter>Resource Files</Filter>
-    </ClInclude>
     <ClInclude Include="PPP+AN.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\PhysDataAcq_FlickerMotion\PhysDataAcq_FlickerMotion\NIDAQmx.h">
+    <ClInclude Include="nisyscfg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="nisyscfg_errors.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="nisyscfg_pxi.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="nisyscfg_wide.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="niSysMon.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NIDAQmx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -145,5 +157,18 @@
     <CustomBuild Include="AOAI_TimeStamp_RTInterp.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="nisyscfg.lib">
+      <Filter>Resource Files</Filter>
+    </Library>
+    <Library Include="NIDAQmx.lib">
+      <Filter>Resource Files</Filter>
+    </Library>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="NIDAQmxErrorCheck.bas">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

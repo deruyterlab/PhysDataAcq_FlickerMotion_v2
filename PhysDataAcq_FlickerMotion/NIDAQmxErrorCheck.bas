@@ -1,5 +1,5 @@
-Attribute VB_Name = "NIDAQmx"
-
+' Attribute VB_Name = "NIDAQmx"
+<Assembly: VB_Name(, "NIDAQmx")> ' not sure if this is correct syntax AWT [5/14/2018]
 
 Public Sub DAQmxErrChk(errorCode As Long)
 '
@@ -18,7 +18,7 @@ Public Sub DAQmxErrChk(errorCode As Long)
         status = DAQmxGetErrorString(errorCode, errorString, bufferSize)
         ' Trim it to the actual length, and display the message
         errorString = Left(errorString, InStr(errorString, Chr$(0)))
-        Err.Raise errorCode, , errorString
+        Err.Raise(errorCode, , errorString)
     End If
 
     

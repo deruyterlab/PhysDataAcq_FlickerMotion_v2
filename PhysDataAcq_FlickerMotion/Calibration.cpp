@@ -31,7 +31,7 @@ extern int16 ii; //added to accept i, ii (?) as defined 10/31/2017 [AWT] Happy H
 
 // get the coefficients
 float64 ai0CoeffVals[4];
-float64 ai0CoeffVals = DAQmxGetAIDevScalingCoeff(hAItask, "Dev1/ai1", ai0CoeffVals, 4) ;    // 4 = NUM_COEFF_VALS
+DAQmxErrChk( DAQmxGetAIDevScalingCoeff(hAItask, "Dev1/ai1", ai0CoeffVals, 4) ) ;    // 4 = NUM_COEFF_VALS
 
 // get the uncalibrated binary value
 float64 UnCalBinVal = AIBuffer[ii]; //capialized the 'b' in AIbuffer => AIBuffer (AIBuffer appears elsewhere in sln but AIbuffer does not) 10/31/2017 [AWT] Happy Halloween! // // switched to float64, undefined type [04/27/2018]
