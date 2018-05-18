@@ -49,6 +49,7 @@ public:
 	string	merge;
 
 	//Associated with PPP stimulus
+	int		AN; //added [5/18/2018]
 	int		PPPTrial; //added [11/14/2017]
 
 };

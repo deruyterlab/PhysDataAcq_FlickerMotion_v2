@@ -19,11 +19,13 @@ using namespace std;
 
 
 
-int GenCorrelatedNoiseHex_v2(const int sd, int Pixels, int nRowsHigh, int nRowsLow, int nColsHigh, int nColsLow, int frameCt, int frameLag, int xLag, int yLag, int framePersist, float alpha1, float alpha2, float alpha3, int *Loc1, int *Loc2, unsigned short int *memAssignRandInt1, unsigned short int *memAssignRandInt2, unsigned short int *memAssignAddedNoise, unsigned short int *memAssignMask, float pairProp, int PPPTrial) // float pairProp added for PPP [11/9/2017]; int PPPTrial added for PPP [11/14/2017]
+int GenCorrelatedNoiseHex_v2(const int sd, int Pixels, int nRowsHigh, int nRowsLow, int nColsHigh, int nColsLow, int frameCt, int frameLag, int xLag, int yLag, int framePersist, float alpha1, float alpha2, float alpha3, int *Loc1, int *Loc2, unsigned short int *memAssignRandInt1, unsigned short int *memAssignRandInt2, unsigned short int *memAssignAddedNoise, unsigned short int *memAssignMask, float pairProp, int PPPTrial, int nframes) // float pairProp added for PPP [11/9/2017]; int PPPTrial added for PPP [11/14/2017]; int nframes added [5/18/2018]
 {
 
 	unsigned short int *ptr1 = new unsigned short int [Pixels*sizeof(unsigned short int)]; // array of random integer values; range: [0, RAND_MAX]
 	unsigned short int *ptr2 = new unsigned short int [Pixels*sizeof(unsigned short int)]; // array of random integer values; range: [0, RAND_MAX]
+	unsigned short int *ptrSet1 = new unsigned short int[Pixels * sizeof(unsigned short int)]; // array of integer values to be populated with x1 subset for PPP [5/18/2018]
+	unsigned short int *ptrSet2 = new unsigned short int[Pixels * sizeof(unsigned short int)]; // array of integer values to be populated with x2 subset for PPP [5/18/2018]
 	unsigned short int *ptr12 = new unsigned short int [Pixels*sizeof(unsigned short int)]; // array of random integer values <ptr1, ptr2>; range: [0, RAND_MAX]
 	double *ptrZ = new double [Pixels*sizeof(double)];		// DAC output in int16 precision
 	float rndFlt;
@@ -108,14 +110,16 @@ int GenCorrelatedNoiseHex_v2(const int sd, int Pixels, int nRowsHigh, int nRowsL
 			{				
 				ptr1[i] = rand();
 				ptr2[i] = rand();
+				ptrSet1[i] = (*ptr1 + nframes) % nframes + 1; // PPP term for x1, time shifted [5/18/2018]
+				ptrSet2[i] = (*ptr1 + (nframes / 3) - 1) % nframes + 1; // PPP term for x2 [5/18/2018]
 				ptr3[i] = distr(ANSeed);
 				memAssignRandInt1[frameCt*Pixels + i] = ptr1[i];
 				memAssignRandInt2[i] = ptr2[i];		//[11/10/2017]
 				memAssignAddedNoise[i] = ptr3[i];	//[11/10/2017]
 				memAssignMask[i] = mask[i];			//[11/10/2017]
-				if (PPPTrial = 1) //case with PPP active [11/14/2017]
+				if (PPPTrial = 1) //case with AN + PPP active [11/14/2017]/[5/18/2018]
 				{
-					ptr12[i] = (alpha1 * ptr1[i]) + (mask[i] * alpha2 * ptr2[i]) + ((1 - mask[i]) * alpha3 * ptr3[i]);		// [11/10/2017] // mask factors added [11/13/2017]
+					ptr12[i] = (alpha1 * ptr1[i]) + (alpha2 * (ptrSet1[i] + ptrSet2[i] )) + (alpha3 * ptr3[i]);		// [11/10/2017] // mask factors added [11/13/2017] // altered for PPP [5/18/2018]
 				}
 				else //case with Added Noise but no PPP [11/14/2017]
 				{
@@ -135,7 +139,7 @@ int GenCorrelatedNoiseHex_v2(const int sd, int Pixels, int nRowsHigh, int nRowsL
 						
 			for (int i=0; i<Pixels; i++)
 			{
-				if (PPPTrial = 1) //case with PPP active [11/14/2017]
+				if (PPPTrial = 1) //case with AN + PPP active [11/14/2017]/[5/18/2018]
 				{
 					ptr12[i] = (alpha1 * ptr1[i]) + (mask[i] * alpha2 * ptr2[i]) + ((1 - mask[i]) * alpha3 * ptr3[i]);		// [11/10/2017] // mask factors added [11/13/2017]
 				}

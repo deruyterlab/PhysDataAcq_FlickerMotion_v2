@@ -373,7 +373,8 @@ void AOAI_TimeStamp_RTInterp( MenuReturnValues mValues, int idx )
 	string strAO_TimeLag;
 	ifstream* ptrTimeLag = 0;	
 	uInt32 filesize_TimeLag;
-	vector<int16> deltaTChange;
+	vector<int16> 
+		;
 
 	strAO_TimeLag = mValues.strStimFileDirPath + "\\" + "tLag.dat";
 	ptrTimeLag = fnOpenFileToRead_int16(strAO_TimeLag, &filesize_TimeLag);

@@ -220,7 +220,7 @@ void DynamicRandGen(MenuReturnValues mValues, int idx) // added [11/14/2017]
 			}
 
 			//GenCorrelatedNoiseHex(sd, Pixels, nRowsHigh, nRowsLow, nColsHigh, nColsLow, num, frameLag, xLag, yLag, framePersist, alpha1, alpha2, Loc1, Loc2, memAssignRandInt, memAssignRand, memAssignDACOut);
-			GenCorrelatedNoiseHex_v2(sd, Pixels, nRowsHigh, nRowsLow, nColsHigh, nColsLow, num, frameLag, xLag, yLag, framePersist, alpha1, alpha2, alpha3, Loc1, Loc2, memAssignRandInt1, memAssignRandInt2, memAssignAddedNoise, memAssignMask, pairProp, PPPTrial);
+			GenCorrelatedNoiseHex_v2(sd, Pixels, nRowsHigh, nRowsLow, nColsHigh, nColsLow, num, frameLag, xLag, yLag, framePersist, alpha1, alpha2, alpha3, Loc1, Loc2, memAssignRandInt1, memAssignRandInt2, memAssignAddedNoise, memAssignMask, pairProp, PPPTrial, nFrames);
 		}
 
 		//DAQ ROUTINES [11/29/2017] 
@@ -342,7 +342,7 @@ void DynamicRandGen(MenuReturnValues mValues, int idx) // added [11/14/2017]
 				start = clock();
 
 				//changed num => nFrames in GenCorrelatedNoiseHex_v2()
-				NZSample = GenCorrelatedNoiseHex_v2(sd, Pixels, nRowsHigh, nRowsLow, nColsHigh, nColsLow, nFrames, frameLag, xLag, yLag, framePersist, alpha1, alpha2, alpha3, Loc1, Loc2, memAssignRandInt1, memAssignRandInt2, memAssignAddedNoise, memAssignMask, pairProp, PPPTrial);
+				NZSample = GenCorrelatedNoiseHex_v2(sd, Pixels, nRowsHigh, nRowsLow, nColsHigh, nColsLow, nFrames, frameLag, xLag, yLag, framePersist, alpha1, alpha2, alpha3, Loc1, Loc2, memAssignRandInt1, memAssignRandInt2, memAssignAddedNoise, memAssignMask, pairProp, PPPTrial, nFrames);
 				TotNFrames = TotNFrames + NZSample + 1;
 
 				DAQmxErrChk(DAQmxWriteBinaryI16(AOHandle, AOHalfBuf_Siz / 3, 0, 1, DAQmx_Val_GroupByScanNumber, &iAOBuffer[0], \

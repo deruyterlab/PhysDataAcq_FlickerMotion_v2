@@ -237,9 +237,6 @@
     <Library Include="NIDAQmx.lib" />
     <Library Include="nisyscfg.lib" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="NIDAQmxErrorCheck.bas" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
