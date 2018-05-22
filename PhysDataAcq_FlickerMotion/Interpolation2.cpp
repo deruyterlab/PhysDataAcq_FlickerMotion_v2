@@ -37,11 +37,11 @@ unsigned int Sub2Ind(float IMAGE_HEIGHT, float IMAGE_WIDTH, unsigned short Row, 
 	unsigned int ndx;
 
 	// Need to put in error checking to make sure ROW and COLUMN are not out of bounds
-	if (Row > IMAGE_HEIGHT || Column > IMAGE_WIDTH)
-		cout << "Sub2Ind: Out of range subscript." << endl;
+	if (Row > IMAGE_HEIGHT || Column > IMAGE_WIDTH) // if: the number of rows in the grid is greater than the image's height OR the number of columns in the grid is greater than the image's width, then... (?)
+		cout << "Sub2Ind: Out of range subscript." << endl; // then: return error message for function.
 
 	//Compute linear indices
-	ndx = (unsigned int) ((Column-1)*IMAGE_HEIGHT + Row);
+	ndx = (unsigned int) ((Column-1)*IMAGE_HEIGHT + Row); // assign uint ndx the value: ((number of grid columns - 1)*(image's height) + (number of grid rows))
 
 	return ndx;
 };
@@ -61,6 +61,7 @@ void CreateRandomFlicker_RT_int16(uInt32 frameCt, uInt32 Pixels, int16* tempLoc2
 	float cont1		= *alpha1; 
 
 	//----------------------Populate picture buffer ----------------------------
+	// NOTE: struct for memcpy is: void* memcpy( void* dest, const void* src, std::size_t count ); (similar for memmove)
 	idxT = *frameLag + ref_Zero;	
 	
 	// Initialize buffer with library of pictures A
@@ -153,9 +154,9 @@ uInt32 ConstructAOBuffer_RT_int16( int16* pBuffer, uInt32 nbSamplePerChannel, uI
 	uInt16 sd, float* alpha0, float* alpha1, int16 nSegs, string merge) 
 {
 		//Initialize the arrays for the INPUT buffer
-		uInt32	nFrame	= (uInt32) nbSamplePerChannel/NumAOChannels;
-		uInt32	idx1 = 0, idx2	= 0, idx3 = 0, idx4 = 0;
-		int	counter = 0;						// Counter for # of AO samples produced
+		uInt32	nFrame	= (uInt32) nbSamplePerChannel/NumAOChannels; // the number of frames is set to the value (number of samples per channel / number of analog output channels)
+		uInt32	idx1 = 0, idx2	= 0, idx3 = 0, idx4 = 0; // initialize our four counters (idx1 = sample counter, idx2 = per-frame raster number, idx3 = frame number, idx4 = number of Z signal repeats)
+		int	counter = 0;								 // Counter for # of AO samples produced
 		uInt32	temp	= -1; 	
 		
 		float WorldMap_XCoord = 0;	// X-coordinates for interpolated LED intensities
@@ -163,43 +164,43 @@ uInt32 ConstructAOBuffer_RT_int16( int16* pBuffer, uInt32 nbSamplePerChannel, uI
 		float AlphaR		= 0;
 		float AlphaC		= 0;
 		float XPos			= 0;
-		float YPos			= 0;
-		float Frames		= 0;
-		float Image			= 0;
+		float YPos			= 0;	
+		float Frames		= 0;	// this will hold the random pixel intensites (flicker values), derived from the Z signal array and stored in the pBuffer
+		float Image			= 0;	// this will be the image to be displayed post-interpolation
 		float ContPat		= 0.3;  // Set contrast of pattern image
 		int16 tempvar		=  0; 
-		unsigned short kR0	= 0;
-		unsigned short kR1	= 0;
-		unsigned short kC0	= 0;
-		unsigned short kC1	= 0;
-		unsigned int ind1	= 0, ind2 = 0, ind3 = 0, ind4 = 0;	
+		unsigned short kR0	= 0; // linear weight for interpolation
+		unsigned short kR1	= 0; // linear weight for interpolation
+		unsigned short kC0	= 0; // linear weight for interpolation
+		unsigned short kC1	= 0; // linear weight for interpolation
+		unsigned int ind1	= 0, ind2 = 0, ind3 = 0, ind4 = 0; // indices on array to interpolate from
 		bool cond = false; 
 		
 
 
 		// Flicker stimulus parameters
-		uInt32* ptr1	= new uInt32 [(NGridSamples-6)];		// array of random integer values; range: [0, RAND_MAX]
-		uInt32* ptr2	= new uInt32 [(NGridSamples-6)];		// array of random integer values; range: [0, RAND_MAX]
-		float *ptrZ = new float [(NGridSamples-6)];	
-		uInt32 ct;										// Counter for ptrZ				
-		float n1 = 0; // used for keeping frame count when stimulus changes (adapt-test stim)
+		uInt32* ptr1	= new uInt32 [(NGridSamples-6)];	// initializes a pointer ptr1 to an empty array of uInt32 values; range: [0, (NGridSamples-6)]
+		uInt32* ptr2	= new uInt32 [(NGridSamples-6)];	// initializes a pointer ptr2 to an empty array of uInt32 values; range: [0, (NGridSamples-6)]
+		float *ptrZ = new float [(NGridSamples-6)];			// initializes a pointer ptrZ to an empty array of float values; range: [0, (NGridSamples-6)]
+		uInt32 ct;											// Counter for ptrZ				
+		float n1 = 0;				 // used for keeping frame count when stimulus changes (adapt-test stim)
 		uInt32 n2; 
 		
 		
-		// Set seed for random number generator
+		// Set seed for random number generator (occurs before the very first frame of a trial is called)
 		if (TotNFrames==0){	
-			srand(sd);
+			srand(sd); // pseudo-random number generator with seed int 'sd'; pseudo-random implies that returned random list will be repeated
 		}
 		
 		//Read the data from the INPUT file into the INPUT buffer
-		for ( uInt32 idx1 = 0; idx1 < nbSamplePerChannel; idx1++ ) {
-			idx2 = idx1 % NGridSamples ;
-			idx3 = (uInt32) floor( (float) idx1/NGridSamples ) ;
+		for ( uInt32 idx1 = 0; idx1 < nbSamplePerChannel; idx1++ ) { // for loop: increment the sample count from 0 to (number of samples per channel) [0 -> 416500, counts through 1 time]
+			idx2 = idx1 % NGridSamples ;							 // the raster number will equal (sample count) mod (number of grid samples) [0 -> 832, counts through 500 times]
+			idx3 = (uInt32) floor( (float) idx1/NGridSamples ) ;	 // the frame number will equal the rounded down (i.e. floor) of the ((sample count) divided by (number of grid samples)) [0 -> 500, repeats each value 833 times]
 			
 
 
-			if (idx3 != temp) {
-				temp = idx3;								// Counter for frame change
+			if (idx3 != temp) {		// if: the frame number is not the same as 'temp'	
+				temp = idx3;		// Counter for frame change; set temp equal to the frame number
 				
 				/*
 				// Case 1: Interleave adapting stimulus (2D pattern) and test stimulus (flicker motion)[2s, 1s, 2s, 1s]  
@@ -260,19 +261,20 @@ uInt32 ConstructAOBuffer_RT_int16( int16* pBuffer, uInt32 nbSamplePerChannel, uI
 				
 				// Frame # when stimulus changes 
 				// IMP :: [Loc2, Loc3] => correspond to different (odd) or same (even) pixel locations of the same delayed image
-				tempvar = (int16)(*pTypeCt%nSegs); 
-				if ((TotNFrames+idx3+idx2) == stimChange[*pTypeCt])	{
-					memcpy(tempLoc2, Loc2+(tempvar)*(NGridSamples-6), sizeof(int16)*(NGridSamples-6));					
-					memcpy(tempLoc3, Loc3+(tempvar)*(NGridSamples-6), sizeof(int16)*(NGridSamples-6));					
-					*frameLag = deltaTChange[tempvar];
-					*alpha0	= ptrCont1[tempvar];
-					*alpha1 = ptrCont2[tempvar];
-					(*pTypeCt)++;
+				// NOTE: struct for memcpy is: void* memcpy( void* dest, const void* src, std::size_t count );
+				tempvar = (int16)(*pTypeCt%nSegs); // set value for tempvar equal to (*pTypeCt mod (number of segments in trial))
+				if ((TotNFrames+idx3+idx2) == stimChange[*pTypeCt])	{ // if: ((total # of frames) + (current frame number) + (current raster point)) = (value in stimChange matrix pointed at by pointer *pTypeCt)...
+					memcpy(tempLoc2, Loc2+(tempvar)*(NGridSamples-6), sizeof(int16)*(NGridSamples-6));	// then: ...copy (sizeof(int16)*(# Grid Samples - 6)) bytes of memory from (Loc2+(tempvar*(# Grid Samples - 6))) to tempLoc2			
+					memcpy(tempLoc3, Loc3+(tempvar)*(NGridSamples-6), sizeof(int16)*(NGridSamples-6));	// then: ...copy (sizeof(int16)*(# Grid Samples - 6)) bytes of memory from (Loc3+(tempvar*(# Grid Samples - 6))) to tempLoc3			
+					*frameLag = deltaTChange[tempvar]; // point frameLag at the index [tempvar] of array deltaTChange
+					*alpha0	= ptrCont1[tempvar];	   // point alpha0 at the index [tempvar] of array ptrCont1
+					*alpha1 = ptrCont2[tempvar];       // point alpha1 at the index [tempvar] of array ptrCont2
+					(*pTypeCt)++;					   // increment the pTypeCt array by 1
 				}
 				// Correction for any out of range indices 
-				for (int i=0; i<NGridSamples-6; i++){ 
-					tempLoc2[i] = (tempLoc2[i]>NGridSamples-6-1) ? -1 : tempLoc2[i]; 
-					tempLoc3[i] = (tempLoc3[i]>NGridSamples-6-1) ? -1 : tempLoc3[i]; 
+				for (int i=0; i<NGridSamples-6; i++){								 // checks each raster point value
+					tempLoc2[i] = (tempLoc2[i]>NGridSamples-6-1) ? -1 : tempLoc2[i]; // sets tempLoc2[i] to -1 if () is true, does not change tempLoc2[i] if false
+					tempLoc3[i] = (tempLoc3[i]>NGridSamples-6-1) ? -1 : tempLoc3[i]; // sets tempLoc3[i] to -1 if () is true, does not change tempLoc3[i] if false
 				}
 
 				
@@ -285,67 +287,74 @@ uInt32 ConstructAOBuffer_RT_int16( int16* pBuffer, uInt32 nbSamplePerChannel, uI
 
 				// This one extra point is defined by an (X,Y,Z) triplet. This ensures the AOBuffer has 7500 values, or 2500 triplets.
 				// Number of Z-Values = ( 833 * NZSignalRepeat + 1 )
-				pBuffer[counter++] = ptrXPixelPos[0];
-				pBuffer[counter++] = ptrYPixelPos[0];
-				pBuffer[counter++] = 0;
+				// NOTE: counter++ is a post-increment operator; i.e. FOLLOWING each line it is evaluated, counter = counter + 1
+				pBuffer[counter++] = ptrXPixelPos[0]; // sets the initial value for XPixelPos to pBuffer, increments counter by 1
+				pBuffer[counter++] = ptrYPixelPos[0]; // sets the initial value for YPixelPos to pBuffer, increments counter by 1
+				pBuffer[counter++] = 0;				  // sets the value 0 to pBuffer, increments counter by 1
+				// altogether, the above three lines of code will put [...,XPixelPos[0],YPixelPos[0],0,...] into the pBuffer array
 			}
 
- 			for ( uInt32 idx4 = 0; idx4 < NZRpt; ++idx4 ) {
-				pBuffer[counter++] = ptrXPixelPos[idx2];	// X Signal 
-				pBuffer[counter++] = ptrYPixelPos[idx2];	// Y signal
+ 			for ( uInt32 idx4 = 0; idx4 < NZRpt; ++idx4 ) { // idx4 counts the number of repeats for the Z signal
+				pBuffer[counter++] = ptrXPixelPos[idx2];	// X Signal; sets pBuffer[counter] to value at index [idx2] of XPixelPos array, increments counter by 1
+				pBuffer[counter++] = ptrYPixelPos[idx2];	// Y signal; sets pBuffer[counter] to value at index [idx2] of YPixelPos array; increments counter by 1
 
 				// Z signal
-				if ( idx4 == 0 || idx2 == 0 || idx2 > (NGridSamples - 6) ) {
-					pBuffer[counter++] = 0;
+				if ( idx4 == 0 || idx2 == 0 || idx2 > (NGridSamples - 6) ) { // if: there have been no repeats OR this is the first raster displayed of a frame OR if the raster number is greater than the number of grid samples...
+					pBuffer[counter++] = 0; // ...then: set pBuffer[counter++] to 0, increment counter by 1
 				}
 
-				else if ( idx4 == 1 ) 
+				else if ( idx4 == 1 ) // else if: this is the first repeat of the Z signal...
 				{
 					
 					//-----------------FIND COORDINATES OF WORLD MAP CLOSEST TO LED POSITIONS------------------------
 					//XPos =  ( ptrLED_XPos[idx2] * cos(2 * PI * ptrRollPosVec[TotNFrames+idx3]/360) ) + ( ptrLED_YPos[idx2] * sin(2 * PI * ptrRollPosVec[TotNFrames+idx3]/360) );
 					//YPos = -( ptrLED_XPos[idx2] * sin(2 * PI * ptrRollPosVec[TotNFrames+idx3]/360) ) + ( ptrLED_YPos[idx2] * cos(2 * PI * ptrRollPosVec[TotNFrames+idx3]/360) );
 					//WorldMap_XCoord = fmod ( ( XPos + ptrYawPosVec[TotNFrames+idx3] - 1 ) , Width ) + 1;
-					//WorldMap_YCoord = fmod ( ( YPos + ptrPitchPosVec[TotNFrames+idx3] - 1 ) , Height ) + 1;	
-					XPos = ptrLED_XPos[idx2];
-					YPos = ptrLED_YPos[idx2];
-					WorldMap_XCoord = (XPos+ptrYawPosVec[TotNFrames+idx3]) - (int16)((XPos+ptrYawPosVec[TotNFrames+idx3])/Width)*Width;
-					WorldMap_YCoord = (YPos+ptrPitchPosVec[TotNFrames+idx3]) - (int16)((YPos+ptrPitchPosVec[TotNFrames+idx3])/Height)*Height ;
-					
+					//WorldMap_YCoord = fmod ( ( YPos + ptrPitchPosVec[TotNFrames+idx3] - 1 ) , Height ) + 1;
 
+					XPos = ptrLED_XPos[idx2]; // set XPos = the current raster number's value stored in the array LED_XPos[]
+					YPos = ptrLED_YPos[idx2]; // set YPos = the current raster number's value stored in the array LED_YPos[]
+					// THEN: set the WorldMap_XCoord to ( (XPos + (the index [Total # of frames + current frame #] in the array YawPosVec)) - (XPos + ((the index [Total # of frames + current frame #] in the array YawPosVec)/Width)) * Width
+					WorldMap_XCoord = (XPos+ptrYawPosVec[TotNFrames+idx3]) - (int16)((XPos+ptrYawPosVec[TotNFrames+idx3])/Width)*Width; 
+					// THEN: set the WorldMap_XCoord to ( (XPos + (the index [Total # of frames + current frame #] in the array PitchPosVec)) - (XPos + ((the index [Total # of frames + current frame #] in the array PitchPosVec)/Height)) * Height
+					WorldMap_YCoord = (YPos+ptrPitchPosVec[TotNFrames+idx3]) - (int16)((YPos+ptrPitchPosVec[TotNFrames+idx3])/Height)*Height;
+					
 
 					//These lines of code are required to convert negative values back to a legal positive values (e.g. mod(-190,3600)=3410)
-					if (WorldMap_XCoord < 0 )
-						WorldMap_XCoord += Width;
-					if (WorldMap_YCoord < 0 )
-						WorldMap_YCoord += Height;
+					if (WorldMap_XCoord < 0 )	   // if: WorldMap_XCoord is less than 0...
+						WorldMap_XCoord += Width;  // then: ...increment WorldMap_XCoord by the Width
+					if (WorldMap_YCoord < 0 )	   // if: WorldMap_YCoord is less than 0...
+						WorldMap_YCoord += Height; // then: ...increment WorldMap_YCoord by the Height
 
-					AlphaC = WorldMap_XCoord - (int16)WorldMap_XCoord;
-					AlphaR = WorldMap_YCoord - (int16)WorldMap_YCoord;
+					// Set values for Row and Column displacements to be used during interpolation
+					AlphaC = WorldMap_XCoord - (int16)WorldMap_XCoord; // first instance of WorldMap is float, second is int; returns decimal value
+					AlphaR = WorldMap_YCoord - (int16)WorldMap_YCoord; // first instance of WorldMap is float, second is int; returns decimal value
 					
 					
-					kR0 = (unsigned short) ((WorldMap_YCoord - (int16) (WorldMap_YCoord/Height) * Height) + 1);
-					kR1 = (unsigned short) (kR0 % (int16)Height + 1); 
-					kC0 = (unsigned short) ((WorldMap_XCoord - (int16) (WorldMap_XCoord/Width) * Width) + 1);
-					kC1 = (unsigned short) (kC0 % (int16)Width + 1);
+					kR0 = (unsigned short) ((WorldMap_YCoord - (int16) (WorldMap_YCoord/Height) * Height) + 1); // kR0 is given the value (WorldMap_YCoord - (WorldMap_YCoord/Height)*Height + 1)
+					kR1 = (unsigned short)(kR0 % (int16)Height + 1);                                            // kR1 is given the value: kR0 mod Height + 1
+					kC0 = (unsigned short) ((WorldMap_XCoord - (int16) (WorldMap_XCoord/Width) * Width) + 1);   // kC0 is given the value (WorldMap_XCoord - (WorldMap_XCoord/Width)*Width + 1)
+					kC1 = (unsigned short) (kC0 % (int16)Width + 1);                                            // kC1 is given the value: kC0 mod Width + 1
 					
 
 					// CREATE THE VECTOR OF WEIGHTED IINTENSITIES THAT DEFINES A LINEARLY INTERPOLATED VALUE.
-					ind1 = Sub2Ind( Height, Width, kR0, kC0 );
-					ind2 = Sub2Ind( Height, Width, kR1, kC0 );
-					ind3 = Sub2Ind( Height, Width, kR0, kC1 );
-					ind4 = Sub2Ind( Height, Width, kR1, kC1 );
+					ind1 = Sub2Ind( Height, Width, kR0, kC0 ); // sets value of index for kR0/kC0 displacements
+					ind2 = Sub2Ind( Height, Width, kR1, kC0 ); // sets value of index for kR1/kC0 displacements
+					ind3 = Sub2Ind( Height, Width, kR0, kC1 ); // sets value of index for kR0/kC1 displacements
+					ind4 = Sub2Ind( Height, Width, kR1, kC1 ); // sets value of index for kR1/kC1 displacements
 					//cout << kR0 << "\t" << kR1 << "\t" << kC0 << "\t" << kC1 << endl;
 					//cout << ind1 << "\t" << ind2 << "\t" << ind3 << "\t" << ind4 << endl;
-					if (ind1 > 12960000 || ind2 > 12960000 || ind3 > 12960000 || ind4 > 12960000 )
+					if (ind1 > 12960000 || ind2 > 12960000 || ind3 > 12960000 || ind4 > 12960000 ) // returns error message for interpolation process if indices are extremely out of bounds
 						cout << "Problem\n" << endl;
 					
-					
+					// this is the final step in the interpolation process, where our pixel index is compared to four surrounding indices in the array.
 					Image = ( (1-AlphaR) * (1-AlphaC) * WorldMapVec[ ind1 ] + AlphaR * (1-AlphaC) * WorldMapVec[ ind2 ] + 
-						(1-AlphaR) * AlphaC * WorldMapVec[ ind3 ] + AlphaR * AlphaC * WorldMapVec[ ind4 ] ) ;
-					
+						(1-AlphaR) * AlphaC * WorldMapVec[ ind3 ] + AlphaR * AlphaC * WorldMapVec[ ind4 ] ) ; 
+						// i.e. (1-AlphaR)(1-AlphaC)(WorldMapVec[ind1]) + (AlphaR)(1-AlphaC)(WorldMapVec[ind2])
+						//    + (1-AlphaR)(AlphaC)(WorldMapVec[ind3])   + (AlphaR)(AlphaC)(WorldMapVec[ind4]) = Image 
+
 					Image = ((Image*2.0/0.7 - 1.0) * ContPat) + 1.0; 	// Sets contrast to 2D pattern: [1-ContPat,1+ContPat] 
-					
+					    // NOTE: ContPat is 'Contrast of Pattern Image'
 					
 
 
@@ -357,11 +366,17 @@ uInt32 ConstructAOBuffer_RT_int16( int16* pBuffer, uInt32 nbSamplePerChannel, uI
 					//Frames = Frames * pow(2.0, 15.0) / 5.0;
 					
 					//-----------------Case 2 : Pure Flicker Miotion--------------------------
+
 					Frames = ((ptrZ[ct] + 1.0)/2.0) * 0.7 * pow(2.0, 15.0) / 5.0;						// Flicker
+					// i.e. Frames = (((value at index [ct] of Z signal array) + 1)/2.0)*(0.7)*((2.0^15.0)/5.0) 
+
 					//Frames = ((ptrZ[ct]*0.7 + 0.35)) * pow(2.0, 15.0) / 5.0;							// Flicker (2 times the contrast)
 
 					//-----------------Case 4 : Pattern--------------------------------------
-					//Frames = Image * (0.35) * pow(2.0, 15.0) / 5.0;										// 2D Pattern
+					//Frames = Image * (0.35) * pow(2.0, 15.0) / 5.0;									// 2D Pattern
+
+					//-----------------Case 5 : Flicker Motion + Added Noise-----------------			// [5/22/2018]
+					//-----------------Case 6 : Flicker Motion + Added Noise + PPP-----------			// [5/22/2018]
 					//_________________________________________________________________________________________________
 
 
@@ -370,14 +385,16 @@ uInt32 ConstructAOBuffer_RT_int16( int16* pBuffer, uInt32 nbSamplePerChannel, uI
 					pBuffer[counter++] = (int16) (Frames);
 				}
 				
-				else {
-					pBuffer[counter++] = (int16) (Frames); 
-					ct += 1;					
+				else {										// if: this is not the first Z signal repeat... 
+					pBuffer[counter++] = (int16) (Frames);  // then: ...set value Frames (defined in previous if statement) to pBuffer array
+					ct += 1;		                        // then: ...and increment ct by 1			
 				}
 			}
 		} // loop for idx1 iteration ends. 
 		
-		//cout << "Count  = " << ct << endl;    
+		//cout << "Count  = " << ct << endl;   
+
+	// empty all pointers as well as the frame counter idx3
 	delete [] ptrZ;
 	delete [] ptr1;
 	delete [] ptr2;
