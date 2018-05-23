@@ -41,7 +41,7 @@ unsigned int Sub2Ind(float IMAGE_HEIGHT, float IMAGE_WIDTH, unsigned short Row, 
 		cout << "Sub2Ind: Out of range subscript." << endl; // then: return error message for function.
 
 	//Compute linear indices
-	ndx = (unsigned int) ((Column-1)*IMAGE_HEIGHT + Row); // assign uint ndx the value: ((number of grid columns - 1)*(image's height) + (number of grid rows))
+	ndx = (unsigned int) ((Column-1)*IMAGE_HEIGHT + Row); // assign (uint) ndx the value: ((number of grid columns - 1)*(image's height) + (number of grid rows))
 
 	return ndx;
 };
@@ -62,46 +62,57 @@ void CreateRandomFlicker_RT_int16(uInt32 frameCt, uInt32 Pixels, int16* tempLoc2
 
 	//----------------------Populate picture buffer ----------------------------
 	// NOTE: struct for memcpy is: void* memcpy( void* dest, const void* src, std::size_t count ); (similar for memmove)
-	idxT = *frameLag + ref_Zero;	
+	idxT = *frameLag + ref_Zero;
 	
 	// Initialize buffer with library of pictures A
-	if (frameCt==0){
-		for (uInt32 j=0; j<numBlocks; j++){
-			if (j%framePersist == 0){
-				for (uInt32 i=0; i<Pixels; i++){
-					picBufSize[i+j*Pixels] = rand();
+	// ---------------------------------------------------------------
+	if (frameCt==0){										// if: it is the initial frame...
+		for (uInt32 j=0; j<numBlocks; j++){						// then for: j, 0 -> (number of blocks)...
+			if (j%framePersist == 0){								// if: j mod framePersists = 0...
+				for (uInt32 i=0; i<Pixels; i++){						// then for: i, 0 -> (number of Pixels)...
+					picBufSize[i+j*Pixels] = rand();						// assign a random value to index [i+j*Pixels] in the array picBufSize
 				}
 			}
-			else{
-				memcpy(picBufSize+Pixels*j, picBufSize+Pixels*(j-1), sizeof(uInt32)*Pixels); 
+			else{													// else: ...
+
+				// ...copy (sizeof(uInt32)*Pixels) bytes of memory from (picBufSize+Pixels*(j-1)) to (picBufSize+Pixels*j)
+				memcpy(picBufSize+Pixels*j, picBufSize+Pixels*(j-1), sizeof(uInt32)*Pixels);  
 			}
 		}
-		memcpy(ptr1, picBufSize, sizeof(uInt32)*Pixels); 
-		memcpy(ptr2, picBufSize, sizeof(uInt32)*Pixels);  
+		memcpy(ptr1, picBufSize, sizeof(uInt32)*Pixels);		// copy (sizeof(uInt32)*Pixels) bytes of memory from picBufSize to ptr1
+		memcpy(ptr2, picBufSize, sizeof(uInt32)*Pixels);		// copy (sizeof(uInt32)*Pixels) bytes of memory from picBufSize to ptr2
 	}
-	else{ 
-	// Generate pictures A and B for current frame					
+	else{													// else: ...
+	// Generate pictures A and B for current frame
+	// ---------------------------------------------------------------
+
+		// ...move (sizeof(uInt32)*Pixels*(numBlocks-1)) bytes of memory from (picBufSize+Pixels) to picBufSize
 		memmove(picBufSize, picBufSize+Pixels, sizeof(uInt32)*Pixels*(numBlocks-1)); 
+
+		// ...copy (sizeof(uInt32)*Pixels) bytes of memory from picBufSize to ptr1
 		memcpy(ptr1, picBufSize, sizeof(uInt32)*Pixels);			// I_0(x,t) 
 		
-		if (frameCt%framePersist==0){
-         	for (uInt32 i=0; i<Pixels; i++){
-				picBufSize[(numBlocks-1)*Pixels + i] = rand();
+		if (frameCt%framePersist==0){							// if: ((current frame) mod framePersist) = 0...
+         	for (uInt32 i=0; i<Pixels; i++){						// then for:  i, 0 -> (number of Pixels)...
+				picBufSize[(numBlocks-1)*Pixels + i] = rand();			// ...assign a random value to the index [(numBlocks-1)*Pixels+i] of array picBufSize
 			}
 		}
-		else{
+		else{													// else: ...
+			// copy (sizeof(uInt32)*Pixels) bytes of memory from (picBufSize+(numBlocks-2)*Pixels) to (picBufSize+(numBlocks-1)*Pixels)
 			memcpy(picBufSize+(numBlocks-1)*Pixels, picBufSize+(numBlocks-2)*Pixels, sizeof(uInt32)*Pixels); 
 		}
 		
-		for (uInt32 i=0; i<Pixels; i++){
-			if (tempLoc2[i] < 0){
-				ptr2[i] = rand();									// I_0(x-dx,t-dt) 
+		for (uInt32 i=0; i<Pixels; i++){						// for: i, 0 -> (number of Pixels)...
+			if (tempLoc2[i] < 0){									// if: the value at index [i] of array tempLoc2 is less than 0...
+				ptr2[i] = rand();		// I_0(x-dx,t-dt)				// ...assign a random value to index [i] of array ptr2 
 			}
-			else{	
-				if (merge=="No"){
-					ptr2[i] = picBufSize[idxT*Pixels + tempLoc2[i]];
+			else{													// else: ...
+				if (merge=="No"){										// if: the string merge == "No"...
+					// ...assign the value at index [idxT*Pixels + tempLoc2[i]] of array picBufSize to index [i] of array ptr2
+					ptr2[i] = picBufSize[idxT*Pixels + tempLoc2[i]];		
 				}
-				else{
+				else{													// else: ...
+					// ...assign the ((value at index [idxT*Pixels = tempLoc2[i] + picBufSize[idxT*Pixels + tempLoc3[i]] of array picBufSize) / 2.0) to the index [i] of array ptr2
 					ptr2[i] = (uInt32)((float)(picBufSize[idxT*Pixels + tempLoc2[i]] + 
 						picBufSize[idxT*Pixels + tempLoc3[i]])/2.0);
 				}
@@ -110,29 +121,32 @@ void CreateRandomFlicker_RT_int16(uInt32 frameCt, uInt32 Pixels, int16* tempLoc2
 		
 			
 		// Check for the sign of "m1": -ve => reversal of motion direction
-		if (cont1<0){
-			for (uInt32 i=0; i<Pixels; i++){
-				ptr2[i] = RAND_MAX-ptr2[i]; 
+		// ---------------------------------------------------------------
+		if (cont1<0){						 // if: cont1 is less than zero...
+			for (uInt32 i=0; i<Pixels; i++){ // for: i from 0 -> number of Pixels
+				ptr2[i] = RAND_MAX-ptr2[i];  // ...set the value of index [i] in the array ptr2 equal to ((the maximum number generated by srand(sd)) - ptr2[i])
 			}
 		}
 		
 		// Create copy of "image2" to be repeated during PERSISTENCE time
 		// memcpy(memRandInt,ptr2,sizeof(uInt32)*Pixels);		
 	} 
-		cont1 = fabs(cont1); 
+		cont1 = fabs(cont1); // assigns the absolute value of cont1 to the object cont1
 
 		// Generate frame from picture A and picture B
-		for (uInt32 i=0; i<Pixels; i++)
+		// ---------------------------------------------------------------
+		for (uInt32 i=0; i<Pixels; i++)							// for: i from 0 -> (# of Pixels)...
 		{
-			rndFlt1 = (float)ptr1[i]/(float)RAND_MAX ;			// [0,1]
+			rndFlt1 = (float)ptr1[i]/(float)RAND_MAX ;			// [0,1] // assigned the (value at index [i] of the array ptr1)/(max number returned by srand(sd)) to rndFlt1
 			//rndFlt1 = rndFlt1*2.0 -1.0;						// [-1,1] : Uniform
-			rndFlt1 = floor(rndFlt1*2.0)*2.0 -1.0;				// [-1,1] : Binary
+			rndFlt1 = floor(rndFlt1*2.0)*2.0 -1.0;				// [-1,1] : Binary // this assigns the value of the ((rounded down (rndFlt1*2)) *2 - 1) to the value rndFlt1
 
-			rndFlt2 = (float)ptr2[i]/(float)RAND_MAX ;			// [0,1]			
+			rndFlt2 = (float)ptr2[i]/(float)RAND_MAX ;			// [0,1] // assigns the (value at index [i] of the array ptr2)/(max number returned by srand(sd)) to rndFlt2
 			//rndFlt2 = rndFlt2*2.0 -1.0;						// [-1,1] : Uniform
-			rndFlt2 = floor(rndFlt2*2.0)*2.0 -1.0;				// [-1,1] : Binary
+			rndFlt2 = floor(rndFlt2*2.0)*2.0 -1.0;				// [-1,1] : Binary // this assigns the value of the ((rounded down (rndFlt2*2)) *2 - 1) to the value rndFlt2
 
-			ptrZ[i] = (float)((cont0*rndFlt1 + cont1*rndFlt2)/(float)2.0);	// in [-(c0+c1)/2, +(c0+c1)/2] 	
+			ptrZ[i] = (float)((cont0*rndFlt1 + cont1*rndFlt2)/(float)2.0);	// in [-(c0+c1)/2, +(c0+c1)/2] 	 // this assigns the pixel intensity values for a given frame, stored in ptrZ
+																											 // the value itself is defined each iteration of the loop by ((cont0*rndFlt + cont1*rndFlt)/2)
 		}
 	
 	//	system("pause");
@@ -154,6 +168,7 @@ uInt32 ConstructAOBuffer_RT_int16( int16* pBuffer, uInt32 nbSamplePerChannel, uI
 	uInt16 sd, float* alpha0, float* alpha1, int16 nSegs, string merge) 
 {
 		//Initialize the arrays for the INPUT buffer
+		// ---------------------------------------------------------------
 		uInt32	nFrame	= (uInt32) nbSamplePerChannel/NumAOChannels; // the number of frames is set to the value (number of samples per channel / number of analog output channels)
 		uInt32	idx1 = 0, idx2	= 0, idx3 = 0, idx4 = 0; // initialize our four counters (idx1 = sample counter, idx2 = per-frame raster number, idx3 = frame number, idx4 = number of Z signal repeats)
 		int	counter = 0;								 // Counter for # of AO samples produced
@@ -188,6 +203,7 @@ uInt32 ConstructAOBuffer_RT_int16( int16* pBuffer, uInt32 nbSamplePerChannel, uI
 		
 		
 		// Set seed for random number generator (occurs before the very first frame of a trial is called)
+		// ---------------------------------------------------------------
 		if (TotNFrames==0){	
 			srand(sd); // pseudo-random number generator with seed int 'sd'; pseudo-random implies that returned random list will be repeated
 		}
@@ -260,6 +276,7 @@ uInt32 ConstructAOBuffer_RT_int16( int16* pBuffer, uInt32 nbSamplePerChannel, uI
 				
 				
 				// Frame # when stimulus changes 
+				// ---------------------------------------------------------------
 				// IMP :: [Loc2, Loc3] => correspond to different (odd) or same (even) pixel locations of the same delayed image
 				// NOTE: struct for memcpy is: void* memcpy( void* dest, const void* src, std::size_t count );
 				tempvar = (int16)(*pTypeCt%nSegs); // set value for tempvar equal to (*pTypeCt mod (number of segments in trial))
@@ -272,6 +289,7 @@ uInt32 ConstructAOBuffer_RT_int16( int16* pBuffer, uInt32 nbSamplePerChannel, uI
 					(*pTypeCt)++;					   // increment the pTypeCt array by 1
 				}
 				// Correction for any out of range indices 
+				// ---------------------------------------------------------------
 				for (int i=0; i<NGridSamples-6; i++){								 // checks each raster point value
 					tempLoc2[i] = (tempLoc2[i]>NGridSamples-6-1) ? -1 : tempLoc2[i]; // sets tempLoc2[i] to -1 if () is true, does not change tempLoc2[i] if false
 					tempLoc3[i] = (tempLoc3[i]>NGridSamples-6-1) ? -1 : tempLoc3[i]; // sets tempLoc3[i] to -1 if () is true, does not change tempLoc3[i] if false
@@ -279,6 +297,7 @@ uInt32 ConstructAOBuffer_RT_int16( int16* pBuffer, uInt32 nbSamplePerChannel, uI
 
 				
 				// Call the flicker generating function 
+				// ---------------------------------------------------------------
 				ct = 0;							// Counter for pixel 
 				CreateRandomFlicker_RT_int16(TotNFrames+idx3+idx2, NGridSamples-6, &tempLoc2[0], &tempLoc3[0], 
 									&picBufSize[0], frameLag, ref_Zero, numBlocks, framePersist, 
@@ -286,6 +305,7 @@ uInt32 ConstructAOBuffer_RT_int16( int16* pBuffer, uInt32 nbSamplePerChannel, uI
 
 
 				// This one extra point is defined by an (X,Y,Z) triplet. This ensures the AOBuffer has 7500 values, or 2500 triplets.
+				// ---------------------------------------------------------------
 				// Number of Z-Values = ( 833 * NZSignalRepeat + 1 )
 				// NOTE: counter++ is a post-increment operator; i.e. FOLLOWING each line it is evaluated, counter = counter + 1
 				pBuffer[counter++] = ptrXPixelPos[0]; // sets the initial value for XPixelPos to pBuffer, increments counter by 1
@@ -299,6 +319,7 @@ uInt32 ConstructAOBuffer_RT_int16( int16* pBuffer, uInt32 nbSamplePerChannel, uI
 				pBuffer[counter++] = ptrYPixelPos[idx2];	// Y signal; sets pBuffer[counter] to value at index [idx2] of YPixelPos array; increments counter by 1
 
 				// Z signal
+				// ---------------------------------------------------------------
 				if ( idx4 == 0 || idx2 == 0 || idx2 > (NGridSamples - 6) ) { // if: there have been no repeats OR this is the first raster displayed of a frame OR if the raster number is greater than the number of grid samples...
 					pBuffer[counter++] = 0; // ...then: set pBuffer[counter++] to 0, increment counter by 1
 				}
@@ -321,12 +342,14 @@ uInt32 ConstructAOBuffer_RT_int16( int16* pBuffer, uInt32 nbSamplePerChannel, uI
 					
 
 					//These lines of code are required to convert negative values back to a legal positive values (e.g. mod(-190,3600)=3410)
+					// ---------------------------------------------------------------
 					if (WorldMap_XCoord < 0 )	   // if: WorldMap_XCoord is less than 0...
 						WorldMap_XCoord += Width;  // then: ...increment WorldMap_XCoord by the Width
 					if (WorldMap_YCoord < 0 )	   // if: WorldMap_YCoord is less than 0...
 						WorldMap_YCoord += Height; // then: ...increment WorldMap_YCoord by the Height
 
 					// Set values for Row and Column displacements to be used during interpolation
+					// ---------------------------------------------------------------
 					AlphaC = WorldMap_XCoord - (int16)WorldMap_XCoord; // first instance of WorldMap is float, second is int; returns decimal value
 					AlphaR = WorldMap_YCoord - (int16)WorldMap_YCoord; // first instance of WorldMap is float, second is int; returns decimal value
 					
@@ -338,6 +361,7 @@ uInt32 ConstructAOBuffer_RT_int16( int16* pBuffer, uInt32 nbSamplePerChannel, uI
 					
 
 					// CREATE THE VECTOR OF WEIGHTED IINTENSITIES THAT DEFINES A LINEARLY INTERPOLATED VALUE.
+					// ---------------------------------------------------------------
 					ind1 = Sub2Ind( Height, Width, kR0, kC0 ); // sets value of index for kR0/kC0 displacements
 					ind2 = Sub2Ind( Height, Width, kR1, kC0 ); // sets value of index for kR1/kC0 displacements
 					ind3 = Sub2Ind( Height, Width, kR0, kC1 ); // sets value of index for kR0/kC1 displacements
@@ -347,7 +371,9 @@ uInt32 ConstructAOBuffer_RT_int16( int16* pBuffer, uInt32 nbSamplePerChannel, uI
 					if (ind1 > 12960000 || ind2 > 12960000 || ind3 > 12960000 || ind4 > 12960000 ) // returns error message for interpolation process if indices are extremely out of bounds
 						cout << "Problem\n" << endl;
 					
-					// this is the final step in the interpolation process, where our pixel index is compared to four surrounding indices in the array.
+					// this is the final step in the interpolation process, where our pixel index 
+					// is compared to four surrounding indices in the array.
+					// ---------------------------------------------------------------
 					Image = ( (1-AlphaR) * (1-AlphaC) * WorldMapVec[ ind1 ] + AlphaR * (1-AlphaC) * WorldMapVec[ ind2 ] + 
 						(1-AlphaR) * AlphaC * WorldMapVec[ ind3 ] + AlphaR * AlphaC * WorldMapVec[ ind4 ] ) ; 
 						// i.e. (1-AlphaR)(1-AlphaC)(WorldMapVec[ind1]) + (AlphaR)(1-AlphaC)(WorldMapVec[ind2])
@@ -381,7 +407,8 @@ uInt32 ConstructAOBuffer_RT_int16( int16* pBuffer, uInt32 nbSamplePerChannel, uI
 
 
 
-					// Assign random values to pixel intensities (counter increments only if "Frames=0" 
+					// Assign random values to pixel intensities (counter increments only if "Frames=0")
+					// ---------------------------------------------------------------
 					pBuffer[counter++] = (int16) (Frames);
 				}
 				
@@ -395,6 +422,7 @@ uInt32 ConstructAOBuffer_RT_int16( int16* pBuffer, uInt32 nbSamplePerChannel, uI
 		//cout << "Count  = " << ct << endl;   
 
 	// empty all pointers as well as the frame counter idx3
+	// ---------------------------------------------------------------
 	delete [] ptrZ;
 	delete [] ptr1;
 	delete [] ptr2;
