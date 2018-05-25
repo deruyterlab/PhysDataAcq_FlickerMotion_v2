@@ -445,8 +445,8 @@ void AO_TimeStamp_RTInterp( MenuReturnValues mValues, int idx )
 	/*********************************************/	
 	// Load Analog Output Buffer
 	/*********************************************/
-	uInt32 dTBlocks		 = abs(min_deltaT)*(min_deltaT<0) + abs(max_deltaT)*(max_deltaT>0) + 1;  // Blocks for dT
-	uInt32 numBlocks	 = (dTBlocks > (uInt32)framePersist) ? dTBlocks : (uInt32)framePersist;	 // # Blocks determined by whichever is greater
+	uInt32 dTBlocks		 = abs(min_deltaT)*(min_deltaT<0) + abs(max_deltaT)*(max_deltaT>0) + 1;  // Blocks for dT // (value<0) = 1 if value > 0, = 0 if value is < or = to 0
+	uInt32 numBlocks	 = (dTBlocks > (uInt32)framePersist) ? dTBlocks : (uInt32)framePersist;	 // # Blocks determined by whichever is greater // numBlocks = # frames in each picture set (?)
 	uInt32 *picBufSize	 = new uInt32 [Pixels * numBlocks];			// Memory block for storing picture set 	
 	uInt32 *memRandInt	 = new uInt32 [(NRasterPoints-6)];			// Memory block for storing time-lagged picture	
 	uInt32 ref_Zero		 = abs(min_deltaT)*(min_deltaT<0);			// Set zero-reference for "picBufSize"

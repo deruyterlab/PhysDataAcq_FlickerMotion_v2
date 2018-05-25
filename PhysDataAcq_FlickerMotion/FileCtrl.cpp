@@ -10,7 +10,8 @@
 
 using namespace std;
 
-ifstream* fnOpenLargeFileToRead(string strStimulusFilename, uInt64* ptrFrameNumElem) {
+//--------------------------------------------------------------------------------------------------------------------------
+ifstream* fnOpenLargeFileToRead(string strStimulusFilename, uInt64* ptrFrameNumElem) { 
 	ifstream *ptrStimFile = new ifstream(); 
 	ptrStimFile->open(strStimulusFilename.c_str(), ios::in|ios::binary);	// input, binary, move file pointer to end
 
@@ -37,8 +38,9 @@ ifstream* fnOpenLargeFileToRead(string strStimulusFilename, uInt64* ptrFrameNumE
 	return ptrStimFile;
 }
 
-ifstream* fnOpenFileToRead(string strStimulusFilename, uInt32* ptrFrameNumElem) {
-	ifstream *ptrStimFile = new ifstream(); 
+//--------------------------------------------------------------------------------------------------------------------------
+ifstream* fnOpenFileToRead(string strStimulusFilename, uInt32* ptrFrameNumElem) {   // this is the function to open files that have been formatted to hold float values
+	ifstream *ptrStimFile = new ifstream();											// define an ifstream pointer which we will use to point at the chosen strStimulusFilename
 	ptrStimFile->open(strStimulusFilename.c_str(), ios::in|ios::binary|ios::ate);	// input, binary, move file pointer to end
 
 	if (!ptrStimFile->good()) {
@@ -50,16 +52,17 @@ ifstream* fnOpenFileToRead(string strStimulusFilename, uInt32* ptrFrameNumElem) 
 	}
 
 	//Calculate the number of points in the INPUT file
-	uInt32 slSizeFrameFile = ptrStimFile->tellg();
-	uInt32 slFrameNumElem = slSizeFrameFile/sizeof(float);
-	*ptrFrameNumElem = slFrameNumElem;
+	uInt32 slSizeFrameFile = ptrStimFile->tellg();			// returns current pointer position in bytes of stimulus file pointer (ptrStimFile); (total size in bytes since ptrStimFile is moved to end of file)
+	uInt32 slFrameNumElem = slSizeFrameFile/sizeof(float);  // returns number of elements (samples) counted through (in this case, elements are float type); (total since ptrStimFile counts through entire file)
+	*ptrFrameNumElem = slFrameNumElem;						
 	cout << "The file has: " << slFrameNumElem << " (samples), and " << slSizeFrameFile << " (bytes)" << endl << endl;
-	ptrStimFile->seekg(0, ios::beg);
+	ptrStimFile->seekg(0, ios::beg);						// sets the position of the stimulus file pointer to the beginning of the stimulus file stream
 
-	return ptrStimFile;
+	return ptrStimFile;										// returns the pointer (now pointing at the beginning of the chosen stimulus file)
 }
 
-ifstream* fnOpenFileToRead_uInt32(string strStimulusFilename, uInt32* ptrFrameNumElem)
+//--------------------------------------------------------------------------------------------------------------------------
+ifstream* fnOpenFileToRead_uInt32(string strStimulusFilename, uInt32* ptrFrameNumElem) // this is the function to open files that have been formatted to hold uInt32 values
 {
 	ifstream *ptrStimFile = new ifstream(); 
 	ptrStimFile->open(strStimulusFilename.c_str(), ios::in|ios::binary|ios::ate);	// input, binary, move file pointer to end
@@ -82,8 +85,8 @@ ifstream* fnOpenFileToRead_uInt32(string strStimulusFilename, uInt32* ptrFrameNu
 	return ptrStimFile;
 }
 
-
-ifstream* fnOpenFileToRead_int16(string strStimulusFilename, uInt32* ptrFrameNumElem)
+//--------------------------------------------------------------------------------------------------------------------------
+ifstream* fnOpenFileToRead_int16(string strStimulusFilename, uInt32* ptrFrameNumElem) // this is the function to open files that have been formatted to hold int16 values
 {
 	ifstream *ptrStimFile = new ifstream(); 
 	ptrStimFile->open(strStimulusFilename.c_str(), ios::in|ios::binary|ios::ate);	// input, binary, move file pointer to end
@@ -107,7 +110,7 @@ ifstream* fnOpenFileToRead_int16(string strStimulusFilename, uInt32* ptrFrameNum
 }
 
 
-
+//--------------------------------------------------------------------------------------------------------------------------
 ofstream* fnOpenFileToWrite(string strStimulusFilename) {
 
 	ofstream *ptrStimFile = new ofstream(); 
@@ -124,6 +127,7 @@ ofstream* fnOpenFileToWrite(string strStimulusFilename) {
 	return ptrStimFile;
 }
 
+//--------------------------------------------------------------------------------------------------------------------------
 void fnCloseFile(ifstream* ptrStimFile)
 {
 	ptrStimFile->close();
@@ -137,6 +141,7 @@ void fnCloseFile(ifstream* ptrStimFile)
 	}
 }	
 
+//--------------------------------------------------------------------------------------------------------------------------
 void LoadFullAOBuffer(double* pBuffer, int16 nbChannels, uInt32 nbSamplePerChannel, ifstream* ptrStimFile)
 {
 	//Initialize the arrays for the INPUT buffer
@@ -153,11 +158,12 @@ void LoadFullAOBuffer(double* pBuffer, int16 nbChannels, uInt32 nbSamplePerChann
 				cerr << "Error reading data" << endl;
 				exit( 0 );
 			}	
-			pBuffer[i*nbChannels+j] = outputBuffer;
+			pBuffer[i*nbChannels+j] = outputBuffer; // assign the value of outputBuffer to the index [((current # sample per channel)*(total number of channels)) + (current # channel)] of array pBuffer
 		}
 	}
 }
 
+//--------------------------------------------------------------------------------------------------------------------------
 uInt32 ConstructAOBuffer(double* pBuffer, uInt32 nbSamplePerChannel, uInt32 NZSigSamples, uInt32 NGridSamples, ifstream* ptrAOFile, double* ptrAO_X_File, double* ptrAO_Y_File) //changed first param. AND last two param.(s) from double* => ifstream* for compatability w/ fn calls
 {
 	//Initialize the arrays for the INPUT buffer
@@ -172,10 +178,10 @@ uInt32 ConstructAOBuffer(double* pBuffer, uInt32 nbSamplePerChannel, uInt32 NZSi
 		uInt32 idx2 = idx % NGridSamples;
 
 		// X Signals
-		pBuffer[counter++] = ptrAO_X_File[idx2];
+		pBuffer[counter++] = ptrAO_X_File[idx2]; // assign value at index [idx2] of array ptrAO_X_File to pBuffer[counter], increment counter by 1
 
 		// Y signals
-		pBuffer[counter++] = ptrAO_Y_File[idx2];
+		pBuffer[counter++] = ptrAO_Y_File[idx2]; // assign value at index [idx2] of array ptrAO_Y_File to pBuffer[counter], increment counter by 1
 
 		// Z signals
 		ptrAOFile->read( reinterpret_cast<char *>( &outputBuffer ), sizeof(double));
@@ -183,12 +189,15 @@ uInt32 ConstructAOBuffer(double* pBuffer, uInt32 nbSamplePerChannel, uInt32 NZSi
 			cerr << "Error reading data" << endl;
 			exit( 0 );
 		}	
-		pBuffer[counter++] = outputBuffer;
+		pBuffer[counter++] = outputBuffer; // assign value of outputBuffer (a double) to index [counter] of array pBuffer, increment counter by 1
 	}
 	return idx;
 }	
 
-uInt32 ConstructAOBuffer_int16(int16* pBuffer, uInt32 nbSamplePerChannel, uInt32 NZSigSamples, uInt32 NGridSamples, ifstream* ptrAOFile, int16* ptrAO_X_File, int16* ptrAO_Y_File, uInt32 NZRpt, uInt32 TotNZSample)
+//--------------------------------------------------------------------------------------------------------------------------
+uInt32 ConstructAOBuffer_int16(int16* pBuffer, uInt32 nbSamplePerChannel, uInt32 NZSigSamples, 
+								uInt32 NGridSamples, ifstream* ptrAOFile, int16* ptrAO_X_File, 
+								int16* ptrAO_Y_File, uInt32 NZRpt, uInt32 TotNZSample)
 {
 	//Initialize the arrays for the INPUT buffer
 	uInt32	idx			= 0;
@@ -239,6 +248,7 @@ uInt32 ConstructAOBuffer_int16(int16* pBuffer, uInt32 nbSamplePerChannel, uInt32
 	return idx;
 }
 
+//--------------------------------------------------------------------------------------------------------------------------
 uInt32 ConstructAOBuffer_uInt16(uInt16* pBuffer, uInt32 nbSamplePerChannel, uInt32 NZSigSamples, uInt32 NGridSamples, ifstream* ptrAOFile, int16* ptrAO_X_File, int16* ptrAO_Y_File, uInt32 NZRpt, uInt32 TotNZSample)
 {
 	//Initialize the arras for the INPUT buffer
@@ -290,7 +300,7 @@ uInt32 ConstructAOBuffer_uInt16(uInt16* pBuffer, uInt32 nbSamplePerChannel, uInt
 	return idx;
 }
 
-
+//--------------------------------------------------------------------------------------------------------------------------
 /*
 for(counter=0; counter<6000; counter++){
 *ptrAO_X_File >> pBuffer[counter];

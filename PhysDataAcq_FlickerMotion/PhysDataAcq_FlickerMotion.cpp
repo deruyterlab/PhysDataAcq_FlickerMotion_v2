@@ -40,7 +40,7 @@ int main(void)
 	while (true)
 	{
 		iIndex++;
-		DAQmenu.fnReadUserInput();
+		DAQmenu.fnReadUserInput(); // this line boots the menu UI
 		mRetVal = DAQmenu.getMValues();
 
 		/*********************************************/

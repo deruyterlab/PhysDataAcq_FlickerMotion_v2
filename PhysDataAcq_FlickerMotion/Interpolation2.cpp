@@ -158,7 +158,8 @@ void CreateRandomFlicker_RT_int16(uInt32 frameCt, uInt32 Pixels, int16* tempLoc2
 
 
 
-uInt32 ConstructAOBuffer_RT_int16( int16* pBuffer, uInt32 nbSamplePerChannel, uInt32 NZSigSamples, 
+uInt32 ConstructAOBuffer_RT_int16( int16* pBuffer, uInt32 
+	PerChannel, uInt32 NZSigSamples, 
 	uInt32 NGridSamples, uInt32 NZRpt, uInt32 TotNFrames, int16 NumAOChannels, int16* ptrXPixelPos,
 	int16* ptrYPixelPos, float* ptrYawPosVec, float* ptrPitchPosVec, float* ptrRollPosVec, 
 	float* ptrLED_XPos, float* ptrLED_YPos, float* WorldMapVec, float Height, float Width, 
@@ -170,8 +171,8 @@ uInt32 ConstructAOBuffer_RT_int16( int16* pBuffer, uInt32 nbSamplePerChannel, uI
 		//Initialize the arrays for the INPUT buffer
 		// ---------------------------------------------------------------
 		uInt32	nFrame	= (uInt32) nbSamplePerChannel/NumAOChannels; // the number of frames is set to the value (number of samples per channel / number of analog output channels)
-		uInt32	idx1 = 0, idx2	= 0, idx3 = 0, idx4 = 0; // initialize our four counters (idx1 = sample counter, idx2 = per-frame raster number, idx3 = frame number, idx4 = number of Z signal repeats)
-		int	counter = 0;								 // Counter for # of AO samples produced
+		uInt32	idx1 = 0, idx2	= 0, idx3 = 0, idx4 = 0;			 // initialize our four counters (idx1 = sample counter, idx2 = per-frame raster number, idx3 = frame number, idx4 = number of Z signal repeats)
+		int		counter = 0;										 // Counter for # of AO samples produced
 		uInt32	temp	= -1; 	
 		
 		float WorldMap_XCoord = 0;	// X-coordinates for interpolated LED intensities
@@ -184,10 +185,10 @@ uInt32 ConstructAOBuffer_RT_int16( int16* pBuffer, uInt32 nbSamplePerChannel, uI
 		float Image			= 0;	// this will be the image to be displayed post-interpolation
 		float ContPat		= 0.3;  // Set contrast of pattern image
 		int16 tempvar		=  0; 
-		unsigned short kR0	= 0; // linear weight for interpolation
-		unsigned short kR1	= 0; // linear weight for interpolation
-		unsigned short kC0	= 0; // linear weight for interpolation
-		unsigned short kC1	= 0; // linear weight for interpolation
+		unsigned short kR0	= 0;	// linear weight for interpolation
+		unsigned short kR1	= 0;	// linear weight for interpolation
+		unsigned short kC0	= 0;	// linear weight for interpolation
+		unsigned short kC1	= 0;	// linear weight for interpolation
 		unsigned int ind1	= 0, ind2 = 0, ind3 = 0, ind4 = 0; // indices on array to interpolate from
 		bool cond = false; 
 		
