@@ -48,9 +48,11 @@ public:
 	int		iPersist; 
 	string	merge;
 
-	//Associated with PPP stimulus
-	int		AN; //added [5/18/2018]
-	int		PPPTrial; //added [11/14/2017]
+	//Associated with AN + PPP stimulus
+	int		ANTrial; //added [05/31/2018], whether AN is active
+	float	AN; //added [5/18/2018], value of AN contrast
+	int		PPPTrial; //added [11/14/2017], whether PPP is active
+	float   PPP; //added [05/31/2018], value of PPP
 
 };
 

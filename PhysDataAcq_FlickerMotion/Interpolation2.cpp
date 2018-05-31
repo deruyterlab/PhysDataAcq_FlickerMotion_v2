@@ -28,6 +28,8 @@
 #include <stdlib.h>
 #include <d:\Scripts\PhysDataAcqScripts\Visual Studio Projects\PhysDataAcq_FlickerMotion\PhysDataAcq_FlickerMotion\NIDAQmx.h>
 #include "Interpolation2.h"
+#include "MenuReturnValues.h"
+#include "Menu.h"
 #define PI 3.14159265
 
 using namespace std;
@@ -50,15 +52,27 @@ unsigned int Sub2Ind(float IMAGE_HEIGHT, float IMAGE_WIDTH, unsigned short Row, 
 
 void CreateRandomFlicker_RT_int16(uInt32 frameCt, uInt32 Pixels, int16* tempLoc2, int16* tempLoc3, 
 									uInt32* picBufSize, int16* frameLag, uInt32 ref_Zero, uInt32 numBlocks, uInt16 framePersist, 
-									float* alpha0, float* alpha1, uInt32* ptr1, uInt32* ptr2, float *ptrZ, string merge)
+									float* alpha0, float* alpha1, uInt32* ptr1, uInt32* ptr2, float *ptrZ, uInt32* ptrNoise, string merge, MenuReturnValues mValues)
 
 
 {
 	uInt32 idxT		= 0;
 	float rndFlt1	= 0;
 	float rndFlt2	= 0;
-	float cont0		= *alpha0; 
-	float cont1		= *alpha1; 
+	float cont0 = *alpha0;
+	float cont1 = *alpha1;
+	int TrialAN = mValues.ANTrial;
+	int TrialPPP = mvalues.PPPTrial;
+	if (TrialAN == 1) {
+		float contNoise = mValues.AN;									// this will be the noise factor  // Need to add this as an inhereted value from MenuReturnValues (!)
+		float noiseNorm = (((*alpha0) + (*alpha1) + contNoise) / 2.0);	// we will divide the other factors by this value in order to normalize the noise (m1+m2+N =< 2.0)
+		float cont0 = *alpha0 * noiseNorm;								// this is the contrast on the original frame (m1), normalized
+		float cont1 = *alpha1 * noiseNorm;								// this is the contrast on the time-lagged frame (m2), normalized
+		contNoise = contNoise * noiseNorm;								// normalize the predefined contNoise
+	}
+	if (TrialPPP == 1) {
+		float PPP = mValues.PPP;										// this is the specified Proportion of Paired Pixels
+	}
 
 	//----------------------Populate picture buffer ----------------------------
 	// NOTE: struct for memcpy is: void* memcpy( void* dest, const void* src, std::size_t count ); (similar for memmove)
@@ -70,7 +84,7 @@ void CreateRandomFlicker_RT_int16(uInt32 frameCt, uInt32 Pixels, int16* tempLoc2
 		for (uInt32 j=0; j<numBlocks; j++){						// then for: j, 0 -> (number of blocks)...
 			if (j%framePersist == 0){								// if: j mod framePersists = 0...
 				for (uInt32 i=0; i<Pixels; i++){						// then for: i, 0 -> (number of Pixels)...
-					picBufSize[i+j*Pixels] = rand();						// assign a random value to index [i+j*Pixels] in the array picBufSize
+					picBufSize[i+j*Pixels] = rand();						// assign a random value to index [i+j*Pixels] in the array picBufSize; will populate (# pixels)*(# blocks) many random values
 				}
 			}
 			else{													// else: ...
@@ -112,13 +126,14 @@ void CreateRandomFlicker_RT_int16(uInt32 frameCt, uInt32 Pixels, int16* tempLoc2
 					ptr2[i] = picBufSize[idxT*Pixels + tempLoc2[i]];		
 				}
 				else{													// else: ...
-					// ...assign the ((value at index [idxT*Pixels = tempLoc2[i] + picBufSize[idxT*Pixels + tempLoc3[i]] of array picBufSize) / 2.0) to the index [i] of array ptr2
+					// ...assign the ((value at index [idxT*Pixels + tempLoc2[i] + picBufSize[idxT*Pixels + tempLoc3[i]] of array picBufSize) / 2.0) to the index [i] of array ptr2
 					ptr2[i] = (uInt32)((float)(picBufSize[idxT*Pixels + tempLoc2[i]] + 
 						picBufSize[idxT*Pixels + tempLoc3[i]])/2.0);
 				}
 			}
 		}
-		
+
+		 
 			
 		// Check for the sign of "m1": -ve => reversal of motion direction
 		// ---------------------------------------------------------------
@@ -147,6 +162,25 @@ void CreateRandomFlicker_RT_int16(uInt32 frameCt, uInt32 Pixels, int16* tempLoc2
 
 			ptrZ[i] = (float)((cont0*rndFlt1 + cont1*rndFlt2)/(float)2.0);	// in [-(c0+c1)/2, +(c0+c1)/2] 	 // this assigns the pixel intensity values for a given frame, stored in ptrZ
 																											 // the value itself is defined each iteration of the loop by ((cont0*rndFlt + cont1*rndFlt)/2)
+			// AN case: (if ANTrial = 1 & PPPTrial = 0)
+			//--------------------------------------------------------------------------------------
+			// if(TrialAN == 1 & TrialPPP == 0){
+				// ptrZ[i] = (float)((cont0*rndFlt1 + cont1*rndFlt2 + contNoise*ptrNoise[i])/(float)2.0)}
+					// NOTE: should ptrNoise[i] be defined as ptr1[i+(2/3(length(ptr1))) ?
+					// NOTE: to find length of an array in C++, typically use lengthArray = (sizeof(array)/sizeof(array[0])) or (sizeof(array)/sizeof(*array))
+
+			// PPP case: (if ANTrial = 0 & PPPTrials = 1)
+			//--------------------------------------------------------------------------------------
+			// if(TrialAN == 0 & TrialPPP == 0){
+			// ptrZ[i] = (float)((cont0*rndFlt1 + cont1*(I0x1 + IPx2))/(float)2.0) }
+				// NOTE: I0x1 should be defined as ptr2[beginning:x1] // on line 121, comment shows that ptr2[i] already includes spatiotemporal shift; how to account for this?
+				// NOTE: IPx2 should be defined as ptr2[x1+1:end] 
+				// NOTE: alternatively, our cont1*( ) terms could be drawn from ptr1, as ptr2 is populated with random numbers... leads to question of compatability with flicker motion.
+
+			// AN + PPP case: (if ANTrial = 1 & PPPTrial = 1)
+			//--------------------------------------------------------------------------------------
+			// if(TrialAN == 1 & TrialPPP = 1){
+			// ptrz[i] = (float)((cont0*rndFlt1 + cont1*(I0x1 + IPx2) + contNoise*ptrNoise[i])/(float)2.0) }
 		}
 	
 	//	system("pause");
@@ -166,7 +200,7 @@ uInt32 ConstructAOBuffer_RT_int16( int16* pBuffer, uInt32
 	int16* Loc2, int16* tempLoc2, int16* Loc3, int16* tempLoc3, uInt32* picBufSize, uInt32* stimChange, 
 	int16* deltaTChange, int16* xLagChange, int16* yLagChange, float* ptrCont1, float* ptrCont2, 
 	uInt16 framePersist, int16* frameLag, uInt32* pTypeCt, uInt32 numBlocks, uInt32 ref_Zero, uInt32* memRandInt,
-	uInt16 sd, float* alpha0, float* alpha1, int16 nSegs, string merge) 
+	uInt16 sd, float* alpha0, float* alpha1, int16 nSegs, string merge, MenuReturnValues mValues) 
 {
 		//Initialize the arrays for the INPUT buffer
 		// ---------------------------------------------------------------
@@ -184,7 +218,7 @@ uInt32 ConstructAOBuffer_RT_int16( int16* pBuffer, uInt32
 		float Frames		= 0;	// this will hold the random pixel intensites (flicker values), derived from the Z signal array and stored in the pBuffer
 		float Image			= 0;	// this will be the image to be displayed post-interpolation
 		float ContPat		= 0.3;  // Set contrast of pattern image
-		int16 tempvar		=  0; 
+		int16 tempvar		= 0; 
 		unsigned short kR0	= 0;	// linear weight for interpolation
 		unsigned short kR1	= 0;	// linear weight for interpolation
 		unsigned short kC0	= 0;	// linear weight for interpolation
@@ -197,9 +231,10 @@ uInt32 ConstructAOBuffer_RT_int16( int16* pBuffer, uInt32
 		// Flicker stimulus parameters
 		uInt32* ptr1	= new uInt32 [(NGridSamples-6)];	// initializes a pointer ptr1 to an empty array of uInt32 values; range: [0, (NGridSamples-6)]
 		uInt32* ptr2	= new uInt32 [(NGridSamples-6)];	// initializes a pointer ptr2 to an empty array of uInt32 values; range: [0, (NGridSamples-6)]
-		float *ptrZ = new float [(NGridSamples-6)];			// initializes a pointer ptrZ to an empty array of float values; range: [0, (NGridSamples-6)]
+		uInt32* ptrNoise = new uInt32[(NGridSamples - 6)];  // initializes a pointer ptrNoise to an empty array of uInt32 values; range: [0, (NGridSamples-6)]; [05/31/2018]
+		float *ptrZ		= new float [(NGridSamples-6)];		// initializes a pointer ptrZ to an empty array of float values; range: [0, (NGridSamples-6)]
 		uInt32 ct;											// Counter for ptrZ				
-		float n1 = 0;				 // used for keeping frame count when stimulus changes (adapt-test stim)
+		float  n1 = 0;				 // used for keeping frame count when stimulus changes (adapt-test stim)
 		uInt32 n2; 
 		
 		
@@ -302,7 +337,7 @@ uInt32 ConstructAOBuffer_RT_int16( int16* pBuffer, uInt32
 				ct = 0;							// Counter for pixel 
 				CreateRandomFlicker_RT_int16(TotNFrames+idx3+idx2, NGridSamples-6, &tempLoc2[0], &tempLoc3[0], 
 									&picBufSize[0], frameLag, ref_Zero, numBlocks, framePersist, 
-									alpha0, alpha1, &ptr1[0], &ptr2[0], &ptrZ[0], merge);
+									alpha0, alpha1, &ptr1[0], &ptr2[0], &ptrZ[0], &ptrNoise[0], merge, mValues);
 
 
 				// This one extra point is defined by an (X,Y,Z) triplet. This ensures the AOBuffer has 7500 values, or 2500 triplets.
@@ -392,7 +427,7 @@ uInt32 ConstructAOBuffer_RT_int16( int16* pBuffer, uInt32
 					//Frames = (cond)*(Image*0.7/2.0) + (!cond)*((ptrZ[ct] + 1.0)*0.7/2.0);				// Flicker 
 					//Frames = Frames * pow(2.0, 15.0) / 5.0;
 					
-					//-----------------Case 2 : Pure Flicker Miotion--------------------------
+					//-----------------Case 2 : Pure Flicker Motion--------------------------
 
 					Frames = ((ptrZ[ct] + 1.0)/2.0) * 0.7 * pow(2.0, 15.0) / 5.0;						// Flicker
 					// i.e. Frames = (((value at index [ct] of Z signal array) + 1)/2.0)*(0.7)*((2.0^15.0)/5.0) 
@@ -403,7 +438,10 @@ uInt32 ConstructAOBuffer_RT_int16( int16* pBuffer, uInt32
 					//Frames = Image * (0.35) * pow(2.0, 15.0) / 5.0;									// 2D Pattern
 
 					//-----------------Case 5 : Flicker Motion + Added Noise-----------------			// [5/22/2018]
+					//Frames = (((ptrZ[ct] + 1.0)/2.0) * 0.7 * pow(2.0, 15.0) / 5.0) + 
+
 					//-----------------Case 6 : Flicker Motion + Added Noise + PPP-----------			// [5/22/2018]
+
 					//_________________________________________________________________________________________________
 
 

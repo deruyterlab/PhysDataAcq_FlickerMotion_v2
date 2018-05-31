@@ -125,8 +125,10 @@ std::ostream & operator <<(std::ostream & out , MenuReturnValues & mValues)
 	out << mValues.iNRasterPoints		<< endl;
 	out << mValues.iPersist				<< endl;
 	out << mValues.merge				<< endl;
+	out << mValues.ANTrial				<< endl; //added [05/31/2018]
 	out << mValues.AN                   << endl; //added [5/18/2018]
 	out << mValues.PPPTrial				<< endl; //added [11/14/2017]
+	out << mValues.PPP					<< endl; //added [05/31/2018]
 
 	return out;
 

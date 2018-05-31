@@ -214,9 +214,12 @@ void Menu::fnMenuSettingsOption ( MenuReturnValues mValues )
 	cout << " J	" << setiosflags(ios::left) << setw(25) <<"# of UEI AO Stimulus Channels"	<< setw(17) << mValues.iNumUEIAOChans		<<	endl;
 	cout << " K	" << setiosflags(ios::left) << setw(25) <<"# of Raster Points to Display"	<< setw(17) << mValues.iNRasterPoints		<<	endl;
 	cout << " L	" << setiosflags(ios::left) << setw(24) <<"# of Frames that Persist"		<< setw(22) << mValues.iPersist				<<	endl;
-	cout << " M	" << setiosflags(ios::left) << setw(24) <<"Choose to average over 2 NN pixels"		<< setw(12) << mValues.merge		<<	endl;
-	cout << " N " << setiosflags(ios::left) << setw(24) <<"PPP active (=1/=0)"				<< setw(20) << mValues.PPPTrial				<<  endl;
-	cout																				<<	endl;
+	cout << " M	" << setiosflags(ios::left) << setw(24) << "Choose to average over 2 NN pixels"		<< setw(12) << mValues.merge		<<	endl;
+	cout << " N " << setiosflags(ios::left) << setw(24) << "Added Noise active (=1/=0)"		<< setw(20) << mValues.ANTrial				<<  endl;
+ 	cout << " O " << setiosflags(ios::left) << setw(24) << "Added Noise Contrast value"		<< setw(20) << mValues.AN					<<  endl;
+	cout << " P " << setiosflags(ios::left) << setw(24) << "PPP active (=1/=0)"				<< setw(20) << mValues.PPPTrial				<<  endl;
+	cout << " Q " << setiosflags(ios::left) << setw(24) << "PPP value"						<< setw(20) << mValues.PPP					<<  endl;
+	cout																					<<	endl;
 	cout << "**********************************************************************"		<<	endl;
 
 }
