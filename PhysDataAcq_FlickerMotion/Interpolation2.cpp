@@ -76,54 +76,55 @@ void CreateRandomFlicker_RT_int16(uInt32 frameCt, uInt32 Pixels, int16* tempLoc2
 
 	//----------------------Populate picture buffer ----------------------------
 	// NOTE: struct for memcpy is: void* memcpy( void* dest, const void* src, std::size_t count ); (similar for memmove)
-	idxT = *frameLag + ref_Zero;
+	idxT = *frameLag + ref_Zero; // idxT is defined as the zero reference point added to the array pointed at by the pointer frameLag; idxT is the 'time index'
 	
 	// Initialize buffer with library of pictures A
 	// ---------------------------------------------------------------
 	if (frameCt==0){										// if: it is the initial frame...
 		for (uInt32 j=0; j<numBlocks; j++){						// then for: j, 0 -> (number of blocks)...
-			if (j%framePersist == 0){								// if: j mod framePersists = 0...
+			if (j%framePersist == 0){								// if: j mod framePersists = 0... // i.e. if j is on a 'new' frame (not a persisting frame)
 				for (uInt32 i=0; i<Pixels; i++){						// then for: i, 0 -> (number of Pixels)...
-					picBufSize[i+j*Pixels] = rand();						// assign a random value to index [i+j*Pixels] in the array picBufSize; will populate (# pixels)*(# blocks) many random values
+					picBufSize[i+j*Pixels] = rand();						// assign a random value to index [i+j*Pixels] in the array pointed to by the pointer picBufSize; will populate (# pixels)*(# blocks) many random values // note that this step is skipped if j is not a 'new' frame
 				}
 			}
 			else{													// else: ...
 
-				// ...copy (sizeof(uInt32)*Pixels) bytes of memory from (picBufSize+Pixels*(j-1)) to (picBufSize+Pixels*j)
+				// ...copy (sizeof(uInt32)*Pixels) bytes of memory from (picBufSize+Pixels*(j-1)) to (picBufSize+Pixels*j) // this is for persistant frames, where the past frame's random values are copied to the new frame
 				memcpy(picBufSize+Pixels*j, picBufSize+Pixels*(j-1), sizeof(uInt32)*Pixels);  
 			}
 		}
-		memcpy(ptr1, picBufSize, sizeof(uInt32)*Pixels);		// copy (sizeof(uInt32)*Pixels) bytes of memory from picBufSize to ptr1
-		memcpy(ptr2, picBufSize, sizeof(uInt32)*Pixels);		// copy (sizeof(uInt32)*Pixels) bytes of memory from picBufSize to ptr2
+		memcpy(ptr1, picBufSize, sizeof(uInt32)*Pixels);		// copy (sizeof(uInt32)*Pixels) bytes of memory from picBufSize to ptr1 // this copies the location of picBufSize to the pointer ptr1
+		memcpy(ptr2, picBufSize, sizeof(uInt32)*Pixels);		// copy (sizeof(uInt32)*Pixels) bytes of memory from picBufSize to ptr2 // this copies the location of picBufSize to the pointer ptr2
 	}
 	else{													// else: ...
 	// Generate pictures A and B for current frame
 	// ---------------------------------------------------------------
 
 		// ...move (sizeof(uInt32)*Pixels*(numBlocks-1)) bytes of memory from (picBufSize+Pixels) to picBufSize
-		memmove(picBufSize, picBufSize+Pixels, sizeof(uInt32)*Pixels*(numBlocks-1)); 
+		memmove(picBufSize, picBufSize+Pixels, sizeof(uInt32)*Pixels*(numBlocks-1)); // this shifts the frame of length Pixels to the beginning of picBufSize
 
 		// ...copy (sizeof(uInt32)*Pixels) bytes of memory from picBufSize to ptr1
-		memcpy(ptr1, picBufSize, sizeof(uInt32)*Pixels);			// I_0(x,t) 
+		memcpy(ptr1, picBufSize, sizeof(uInt32)*Pixels);			// I_0(x,t)  // this is the initial signal; this function moves the frame shifted to the beginning of picBufSize for access by ptr1
 		
-		if (frameCt%framePersist==0){							// if: ((current frame) mod framePersist) = 0...
+		if (frameCt%framePersist==0){							// if: ((current frame) mod framePersist) = 0... // similar to above, if the current frame is a 'new' frame (not a persisting frame)
          	for (uInt32 i=0; i<Pixels; i++){						// then for:  i, 0 -> (number of Pixels)...
-				picBufSize[(numBlocks-1)*Pixels + i] = rand();			// ...assign a random value to the index [(numBlocks-1)*Pixels+i] of array picBufSize
+				picBufSize[(numBlocks-1)*Pixels + i] = rand();			// ...assign a random value to the index [(numBlocks-1)*Pixels+i] of array pointed to by picBufSize // the index is the (previous frame)*(# of pixels/frame) + current pixel value in for loop
 			}
 		}
-		else{													// else: ...
+		else{													// else: ... (if the frame is a persistant frame)
 			// copy (sizeof(uInt32)*Pixels) bytes of memory from (picBufSize+(numBlocks-2)*Pixels) to (picBufSize+(numBlocks-1)*Pixels)
-			memcpy(picBufSize+(numBlocks-1)*Pixels, picBufSize+(numBlocks-2)*Pixels, sizeof(uInt32)*Pixels); 
+			memcpy(picBufSize+(numBlocks-1)*Pixels, picBufSize+(numBlocks-2)*Pixels, sizeof(uInt32)*Pixels); // this copies the values from two frames prior to one frame prior (?)
 		}
 		
+		// the block of code below sets up ptr2[i] and handles the frame merge subroutine; implement this into PPP? (?)
 		for (uInt32 i=0; i<Pixels; i++){						// for: i, 0 -> (number of Pixels)...
 			if (tempLoc2[i] < 0){									// if: the value at index [i] of array tempLoc2 is less than 0...
-				ptr2[i] = rand();		// I_0(x-dx,t-dt)				// ...assign a random value to index [i] of array ptr2 
+				ptr2[i] = rand();										// I_0(x-dx,t-dt) // ...assign a random value to index [i] of array pointed to by ptr2 // this is the time-shifted signal
 			}
-			else{													// else: ...
+			else{													// else: ... (if tempLoc2[i] > or = 0) // this is to ensure no negative spatial values (?)
 				if (merge=="No"){										// if: the string merge == "No"...
 					// ...assign the value at index [idxT*Pixels + tempLoc2[i]] of array picBufSize to index [i] of array ptr2
-					ptr2[i] = picBufSize[idxT*Pixels + tempLoc2[i]];		
+					ptr2[i] = picBufSize[idxT*Pixels + tempLoc2[i]];	// NOTE: idxT*Pixels ensures that the time lag will consider whole frames; 
 				}
 				else{													// else: ...
 					// ...assign the ((value at index [idxT*Pixels + tempLoc2[i] + picBufSize[idxT*Pixels + tempLoc3[i]] of array picBufSize) / 2.0) to the index [i] of array ptr2
@@ -139,7 +140,7 @@ void CreateRandomFlicker_RT_int16(uInt32 frameCt, uInt32 Pixels, int16* tempLoc2
 		// ---------------------------------------------------------------
 		if (cont1<0){						 // if: cont1 is less than zero...
 			for (uInt32 i=0; i<Pixels; i++){ // for: i from 0 -> number of Pixels
-				ptr2[i] = RAND_MAX-ptr2[i];  // ...set the value of index [i] in the array ptr2 equal to ((the maximum number generated by srand(sd)) - ptr2[i])
+				ptr2[i] = RAND_MAX-ptr2[i];  // ...set the value of index [i] in the array pointed to by ptr2 equal to ((the maximum number generated by srand(sd)) - (ptr2[i], the current value of index [i] of ptr2))
 			}
 		}
 		
@@ -150,6 +151,8 @@ void CreateRandomFlicker_RT_int16(uInt32 frameCt, uInt32 Pixels, int16* tempLoc2
 
 		// Generate frame from picture A and picture B
 		// ---------------------------------------------------------------
+		// this segment of code is where 'frames' A and B are combined into a single frame to be processed and displayed (processing takes place in ConstructAOBuffer_RT_int16())
+		// NOTE: randFlt1 and rndFlt2 are the preprocessed values for each pixel; these are used to populate the ptrZ[i] frame, which is then processed to become the displayed Image
 		for (uInt32 i=0; i<Pixels; i++)							// for: i from 0 -> (# of Pixels)...
 		{
 			rndFlt1 = (float)ptr1[i]/(float)RAND_MAX ;			// [0,1] // assigned the (value at index [i] of the array ptr1)/(max number returned by srand(sd)) to rndFlt1
@@ -231,7 +234,7 @@ uInt32 ConstructAOBuffer_RT_int16( int16* pBuffer, uInt32
 		// Flicker stimulus parameters
 		uInt32* ptr1	= new uInt32 [(NGridSamples-6)];	// initializes a pointer ptr1 to an empty array of uInt32 values; range: [0, (NGridSamples-6)]
 		uInt32* ptr2	= new uInt32 [(NGridSamples-6)];	// initializes a pointer ptr2 to an empty array of uInt32 values; range: [0, (NGridSamples-6)]
-		uInt32* ptrNoise = new uInt32[(NGridSamples - 6)];  // initializes a pointer ptrNoise to an empty array of uInt32 values; range: [0, (NGridSamples-6)]; [05/31/2018]
+		uInt32* ptrNoise = new uInt32[(NGridSamples-6)];	// initializes a pointer ptrNoise to an empty array of uInt32 values; range: [0, (NGridSamples-6)]; [05/31/2018]
 		float *ptrZ		= new float [(NGridSamples-6)];		// initializes a pointer ptrZ to an empty array of float values; range: [0, (NGridSamples-6)]
 		uInt32 ct;											// Counter for ptrZ				
 		float  n1 = 0;				 // used for keeping frame count when stimulus changes (adapt-test stim)
