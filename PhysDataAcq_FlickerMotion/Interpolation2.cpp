@@ -349,7 +349,7 @@ uInt32 ConstructAOBuffer_RT_int16( int16* pBuffer, uInt32
 				// NOTE: counter++ is a post-increment operator; i.e. FOLLOWING each line it is evaluated, counter = counter + 1
 				pBuffer[counter++] = ptrXPixelPos[0]; // sets the initial value for XPixelPos to pBuffer, increments counter by 1
 				pBuffer[counter++] = ptrYPixelPos[0]; // sets the initial value for YPixelPos to pBuffer, increments counter by 1
-				pBuffer[counter++] = 0;				  // sets the value 0 to pBuffer, increments counter by 1
+				pBuffer[counter++] = 0;				  // sets the value 0 to the first index of pBuffer, increments counter by 1
 				// altogether, the above three lines of code will put [...,XPixelPos[0],YPixelPos[0],0,...] into the pBuffer array
 			}
 
