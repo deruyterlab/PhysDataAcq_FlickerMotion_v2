@@ -3,6 +3,8 @@
 
 #include <iostream>
 #include <fstream>
+#include "Menu.h"
+#include "MenuReturnValues.h"
 #include <d:\Scripts\PhysDataAcqScripts\Visual Studio Projects\PhysDataAcq_FlickerMotion\PhysDataAcq_FlickerMotion\NIDAQmx.h>
 
 using namespace std;

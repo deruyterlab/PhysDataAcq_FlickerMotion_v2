@@ -373,8 +373,7 @@ void AOAI_TimeStamp_RTInterp( MenuReturnValues mValues, int idx )
 	string strAO_TimeLag;
 	ifstream* ptrTimeLag = 0;	
 	uInt32 filesize_TimeLag;
-	vector<int16> 
-		;
+	vector<int16> deltaTChange; // is this correct (?) vector array had been deleted, but deletion left deltaTChange undefined [6/7/2018]
 
 	strAO_TimeLag = mValues.strStimFileDirPath + "\\" + "tLag.dat";
 	ptrTimeLag = fnOpenFileToRead_int16(strAO_TimeLag, &filesize_TimeLag);
@@ -475,7 +474,7 @@ void AOAI_TimeStamp_RTInterp( MenuReturnValues mValues, int idx )
 		&X[0], &Y[0], &YawPosVec[0], &PitchPosVec[0], &RollPosVec[0], &LED_XPos[0], &LED_YPos[0], 
 		&WorldMapVec[0], Height, Width, Loc2, tempLoc2, Loc3, tempLoc3, picBufSize, &stimChange[0], &deltaTChange[0], &xLagChange[0], 
 		&yLagChange[0], &cont1[0], &cont2[0], framePersist, &frameLag, &TypeCt, numBlocks, ref_Zero, memRandInt, sd, &alpha0, &alpha1, 
-		filesize_TimeLag, merge);
+		filesize_TimeLag, merge, mValues);
 
 	TotNFrames = TotNFrames + NZSample + 1;
 	cout << "Number of Z samples written: " << TotNFrames << endl << endl;
@@ -606,7 +605,7 @@ void AOAI_TimeStamp_RTInterp( MenuReturnValues mValues, int idx )
 				&X[0], &Y[0], &YawPosVec[0], &PitchPosVec[0], &RollPosVec[0], &LED_XPos[0], &LED_YPos[0], 
 				&WorldMapVec[0], Height, Width, Loc2, tempLoc2, Loc3, tempLoc3, picBufSize, &stimChange[0], &deltaTChange[0], &xLagChange[0], 
 				&yLagChange[0], &cont1[0], &cont2[0], framePersist, &frameLag, &TypeCt, numBlocks, ref_Zero, memRandInt, sd, &alpha0, &alpha1,
-				filesize_TimeLag, merge); 
+				filesize_TimeLag, merge, mValues); 
 
 			TotNFrames = TotNFrames + NZSample + 1;
 

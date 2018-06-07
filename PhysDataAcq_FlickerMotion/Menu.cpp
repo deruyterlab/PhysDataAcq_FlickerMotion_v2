@@ -111,12 +111,23 @@ void Menu::fnReadUserInput()
 			cin >> mValues.merge;
 			break;
 		case 'N':
-			cout << "PPP Active (=1) or Inactive (=0) ---------> ";
+			cout << "AN Active (=1) or Inactive (=0) ---------> ";
+			cin >> mValues.ANTrial;
+			break;
+		case 'O':
+			cout << "AN value (float) --------->";
+			cin >> mValues.AN;
+			break;
+		case 'P':
+			cout << "PPP Active (=1) or Inactive (=0) --------->";
 			cin >> mValues.PPPTrial;
 			break;
+		case 'Q':
+			cout << "PPP value (float) --------->";
+			cin >> mValues.PPP;
 
 
-		case 'q':
+		case 'x':
 			cout << "Program execution halted. Exiting application!" << endl;
 			exit(-1);
 			break;
@@ -181,7 +192,7 @@ void Menu::fnMenuSettingsOption ( MenuReturnValues mValues )
 	cout << " N PPP active (=1/=0) "													<<  endl; // [11/14/2017]
 
 	cout << "0	<-------------------------------------- Start Acquisition"				<<	endl;
-	cout << "q	<-------------------------------------- Quit"							<<	endl;
+	cout << "x	<-------------------------------------- Quit"							<<	endl;
 	cout << "**********************************************************************"	<<	endl;
 	cout																				<<	endl;
 	//	DISPLAY THE VALUES OF THE MENU VARIABLES
@@ -214,11 +225,11 @@ void Menu::fnMenuSettingsOption ( MenuReturnValues mValues )
 	cout << " J	" << setiosflags(ios::left) << setw(25) <<"# of UEI AO Stimulus Channels"	<< setw(17) << mValues.iNumUEIAOChans		<<	endl;
 	cout << " K	" << setiosflags(ios::left) << setw(25) <<"# of Raster Points to Display"	<< setw(17) << mValues.iNRasterPoints		<<	endl;
 	cout << " L	" << setiosflags(ios::left) << setw(24) <<"# of Frames that Persist"		<< setw(22) << mValues.iPersist				<<	endl;
-	cout << " M	" << setiosflags(ios::left) << setw(24) << "Choose to average over 2 NN pixels"		<< setw(12) << mValues.merge		<<	endl;
-	cout << " N " << setiosflags(ios::left) << setw(24) << "Added Noise active (=1/=0)"		<< setw(20) << mValues.ANTrial				<<  endl;
- 	cout << " O " << setiosflags(ios::left) << setw(24) << "Added Noise Contrast value"		<< setw(20) << mValues.AN					<<  endl;
-	cout << " P " << setiosflags(ios::left) << setw(24) << "PPP active (=1/=0)"				<< setw(20) << mValues.PPPTrial				<<  endl;
-	cout << " Q " << setiosflags(ios::left) << setw(24) << "PPP value"						<< setw(20) << mValues.PPP					<<  endl;
+	cout << " M	" << setiosflags(ios::left) << setw(24) <<"Choose to average over 2 NN pixels"		<< setw(12) << mValues.merge		<<	endl;
+	cout << " N " << setiosflags(ios::left) << setw(25) <<"Added Noise active (=1/=0)"		<< setw(16) << mValues.ANTrial				<<  endl;
+ 	cout << " O " << setiosflags(ios::left) << setw(25) <<"Added Noise Contrast value"		<< setw(16) << mValues.AN					<<  endl;
+	cout << " P " << setiosflags(ios::left) << setw(25) <<"PPP active (=1/=0)"				<< setw(16) << mValues.PPPTrial				<<  endl;
+	cout << " Q " << setiosflags(ios::left) << setw(25) <<"PPP value"						<< setw(16) << mValues.PPP					<<  endl; // NOTE: if value is changed, program crashes [6/7/2018]
 	cout																					<<	endl;
 	cout << "**********************************************************************"		<<	endl;
 

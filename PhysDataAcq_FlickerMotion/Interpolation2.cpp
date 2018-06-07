@@ -59,20 +59,23 @@ void CreateRandomFlicker_RT_int16(uInt32 frameCt, uInt32 Pixels, int16* tempLoc2
 	uInt32 idxT		= 0;
 	float rndFlt1	= 0;
 	float rndFlt2	= 0;
+	float rndNoise = 0;				// this will be the float pulled from the random Noise values and used to make ptrZ[i] when TrialAN == 1;
 	float cont0 = *alpha0;
 	float cont1 = *alpha1;
 	int TrialAN = mValues.ANTrial;
-	int TrialPPP = mvalues.PPPTrial;
+	int TrialPPP = mValues.PPPTrial;
+	float contNoise = mValues.AN;									// this will be the noise factor  // Need to add this as an inhereted value from MenuReturnValues (!)
 	if (TrialAN == 1) {
-		float contNoise = mValues.AN;									// this will be the noise factor  // Need to add this as an inhereted value from MenuReturnValues (!)
 		float noiseNorm = (((*alpha0) + (*alpha1) + contNoise) / 2.0);	// we will divide the other factors by this value in order to normalize the noise (m1+m2+N =< 2.0)
-		float cont0 = *alpha0 * noiseNorm;								// this is the contrast on the original frame (m1), normalized
-		float cont1 = *alpha1 * noiseNorm;								// this is the contrast on the time-lagged frame (m2), normalized
+		cont0 = *alpha0 * noiseNorm;									// this is the contrast on the original frame (m1), normalized
+		cont1 = *alpha1 * noiseNorm;									// this is the contrast on the time-lagged frame (m2), normalized
 		contNoise = contNoise * noiseNorm;								// normalize the predefined contNoise
 	}
-	if (TrialPPP == 1) {
-		float PPP = mValues.PPP;										// this is the specified Proportion of Paired Pixels
-	}
+
+	//}
+	//if (TrialPPP == 1) {
+	float PPP = mValues.PPP;										// this is the specified Proportion of Paired Pixels
+	//}
 
 	//----------------------Populate picture buffer ----------------------------
 	// NOTE: struct for memcpy is: void* memcpy( void* dest, const void* src, std::size_t count ); (similar for memmove)
@@ -95,6 +98,7 @@ void CreateRandomFlicker_RT_int16(uInt32 frameCt, uInt32 Pixels, int16* tempLoc2
 		}
 		memcpy(ptr1, picBufSize, sizeof(uInt32)*Pixels);		// copy (sizeof(uInt32)*Pixels) bytes of memory from picBufSize to ptr1 // this copies the location of picBufSize to the pointer ptr1
 		memcpy(ptr2, picBufSize, sizeof(uInt32)*Pixels);		// copy (sizeof(uInt32)*Pixels) bytes of memory from picBufSize to ptr2 // this copies the location of picBufSize to the pointer ptr2
+		memcpy(ptrNoise, picBufSize+Pixels, sizeof(uInt32)*Pixels);	// this will eventually contain the Noise values [6/7/2018] (!)
 	}
 	else{													// else: ...
 	// Generate pictures A and B for current frame
@@ -162,28 +166,35 @@ void CreateRandomFlicker_RT_int16(uInt32 frameCt, uInt32 Pixels, int16* tempLoc2
 			rndFlt2 = (float)ptr2[i]/(float)RAND_MAX ;			// [0,1] // assigns the (value at index [i] of the array ptr2)/(max number returned by srand(sd)) to rndFlt2
 			//rndFlt2 = rndFlt2*2.0 -1.0;						// [-1,1] : Uniform
 			rndFlt2 = floor(rndFlt2*2.0)*2.0 -1.0;				// [-1,1] : Binary // this assigns the value of the ((rounded down (rndFlt2*2)) *2 - 1) to the value rndFlt2
+			
+			rndNoise = (float)ptrNoise[i] / (float)RAND_MAX;
 
-			ptrZ[i] = (float)((cont0*rndFlt1 + cont1*rndFlt2)/(float)2.0);	// in [-(c0+c1)/2, +(c0+c1)/2] 	 // this assigns the pixel intensity values for a given frame, stored in ptrZ
-																											 // the value itself is defined each iteration of the loop by ((cont0*rndFlt + cont1*rndFlt)/2)
+			if (TrialAN == 0 & TrialPPP == 0) {
+				ptrZ[i] = (float)((cont0*rndFlt1 + cont1 * rndFlt2) / (float)2.0);	// in [-(c0+c1)/2, +(c0+c1)/2] 	 // this assigns the pixel intensity values for a given frame, stored in ptrZ
+			}																										 // the value itself is defined each iteration of the loop by ((cont0*rndFlt + cont1*rndFlt)/2)
+			
 			// AN case: (if ANTrial = 1 & PPPTrial = 0)
 			//--------------------------------------------------------------------------------------
-			// if(TrialAN == 1 & TrialPPP == 0){
-				// ptrZ[i] = (float)((cont0*rndFlt1 + cont1*rndFlt2 + contNoise*ptrNoise[i])/(float)2.0)}
+			if (TrialAN == 1 & TrialPPP == 0) {
+				ptrZ[i] = (float)((cont0*rndFlt1 + cont1 * rndFlt2 + contNoise * rndNoise) / (float)2.0);
 					// NOTE: should ptrNoise[i] be defined as ptr1[i+(2/3(length(ptr1))) ?
 					// NOTE: to find length of an array in C++, typically use lengthArray = (sizeof(array)/sizeof(array[0])) or (sizeof(array)/sizeof(*array))
+			}
 
 			// PPP case: (if ANTrial = 0 & PPPTrials = 1)
 			//--------------------------------------------------------------------------------------
-			// if(TrialAN == 0 & TrialPPP == 0){
-			// ptrZ[i] = (float)((cont0*rndFlt1 + cont1*(I0x1 + IPx2))/(float)2.0) }
-				// NOTE: I0x1 should be defined as ptr2[beginning:x1] // on line 121, comment shows that ptr2[i] already includes spatiotemporal shift; how to account for this?
-				// NOTE: IPx2 should be defined as ptr2[x1+1:end] 
-				// NOTE: alternatively, our cont1*( ) terms could be drawn from ptr1, as ptr2 is populated with random numbers... leads to question of compatability with flicker motion.
+			//if (TrialAN == 0 & TrialPPP == 1) {
+				// ptrZ[i] = (float)((cont0*rndFlt1 + cont1*(I0x1 + IPx2))/(float)2.0);
+						// NOTE: I0x1 should be defined as ptr2[beginning:x1] // on line 121, comment shows that ptr2[i] already includes spatiotemporal shift; how to account for this?
+						// NOTE: IPx2 should be defined as ptr2[x1+1:end] 
+						// NOTE: alternatively, our cont1*( ) terms could be drawn from ptr1, as ptr2 is populated with random numbers... leads to question of compatability with flicker motion.
+			//}
 
 			// AN + PPP case: (if ANTrial = 1 & PPPTrial = 1)
 			//--------------------------------------------------------------------------------------
 			// if(TrialAN == 1 & TrialPPP = 1){
-			// ptrz[i] = (float)((cont0*rndFlt1 + cont1*(I0x1 + IPx2) + contNoise*ptrNoise[i])/(float)2.0) }
+			// ptrz[i] = (float)((cont0*rndFlt1 + cont1*(I0x1 + IPx2) + contNoise*ptrNoise[i])/(float)2.0);
+			//}
 		}
 	
 	//	system("pause");
@@ -196,7 +207,7 @@ void CreateRandomFlicker_RT_int16(uInt32 frameCt, uInt32 Pixels, int16* tempLoc2
 
 
 uInt32 ConstructAOBuffer_RT_int16( int16* pBuffer, uInt32 
-	PerChannel, uInt32 NZSigSamples, 
+	nbSamplePerChannel, uInt32 NZSigSamples, 
 	uInt32 NGridSamples, uInt32 NZRpt, uInt32 TotNFrames, int16 NumAOChannels, int16* ptrXPixelPos,
 	int16* ptrYPixelPos, float* ptrYawPosVec, float* ptrPitchPosVec, float* ptrRollPosVec, 
 	float* ptrLED_XPos, float* ptrLED_YPos, float* WorldMapVec, float Height, float Width, 

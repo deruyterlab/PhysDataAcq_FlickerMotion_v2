@@ -478,7 +478,7 @@ void PPP_AN(MenuReturnValues mValues, int idx)
 		&X[0], &Y[0], &YawPosVec[0], &PitchPosVec[0], &RollPosVec[0], &LED_XPos[0], &LED_YPos[0], &WorldMapVec[0],
 		Height, Width, Loc2, tempLoc2, Loc3, tempLoc3, picBufSize, &stimChange[0], &deltaTChange[0], &xLagChange[0],
 		&yLagChange[0], &cont1[0], &cont2[0], framePersist, &frameLag, &TypeCt, numBlocks, ref_Zero, memRandInt, sd,
-		&alpha0, &alpha1, filesize_TimeLag, merge);
+		&alpha0, &alpha1, filesize_TimeLag, merge, mValues);
 
 	TotNFrames = TotNFrames + NZSample + 1;
 	cout << "Number of frames preloaded into AO buffer: " << TotNFrames << endl << endl;
@@ -610,7 +610,7 @@ void PPP_AN(MenuReturnValues mValues, int idx)
 				&X[0], &Y[0], &YawPosVec[0], &PitchPosVec[0], &RollPosVec[0], &LED_XPos[0], &LED_YPos[0],
 				&WorldMapVec[0], Height, Width, Loc2, tempLoc2, Loc3, tempLoc3, picBufSize, &stimChange[0], &deltaTChange[0],
 				&xLagChange[0], &yLagChange[0], &cont1[0], &cont2[0], framePersist, &frameLag, &TypeCt, numBlocks, ref_Zero, memRandInt,
-				sd, &alpha0, &alpha1, filesize_TimeLag, merge);
+				sd, &alpha0, &alpha1, filesize_TimeLag, merge, mValues);
 
 			TotNFrames = TotNFrames + NZSample + 1;
 

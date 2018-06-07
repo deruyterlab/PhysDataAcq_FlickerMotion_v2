@@ -63,7 +63,7 @@ void DOContDITimeStamp( MenuReturnValues mValues, int idx )
 	// Initialize the Response file
 	/*********************************************/
 	char fileIndex[3];
-	_itoa(idx,fileIndex,5); //changed itoa() => _itoa() 10/30/2017 [AWT]
+	_itoa_s(idx,fileIndex,5); //changed itoa() => _itoa() 10/30/2017 [AWT] //changed _itoa() => _itoa_s() [AWT]/[6/7/2018]
 	cout << mValues.strRecFileDirPath << "\\" << mValues.strRecFileBaseName << fileIndex << ".dat" << endl;
 	strAIFullFileName=mValues.strRecFileDirPath + "\\" + mValues.strRecFileBaseName + fileIndex + ".dat";
 	ptrAIFile = fnOpenFileToWrite( strAIFullFileName );

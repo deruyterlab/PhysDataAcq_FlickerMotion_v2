@@ -92,7 +92,10 @@ MenuReturnValues::MenuReturnValues()
 	iNRasterPoints		= 833;
 	iPersist			= 2;
 	merge				= string("No");
+	ANTrial				= 0; //added [6/7/2018]
+	AN					= 0; //added [6/7/2018]
 	PPPTrial			= 0; //added [11/14/2017]
+	PPP					= 0; //added [6/7/2018]
 
 }
 
