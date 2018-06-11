@@ -98,7 +98,7 @@ void CreateRandomFlicker_RT_int16(uInt32 frameCt, uInt32 Pixels, int16* tempLoc2
 		}
 		memcpy(ptr1, picBufSize, sizeof(uInt32)*Pixels);		// copy (sizeof(uInt32)*Pixels) bytes of memory from picBufSize to ptr1 // this copies the location of picBufSize to the pointer ptr1
 		memcpy(ptr2, picBufSize, sizeof(uInt32)*Pixels);		// copy (sizeof(uInt32)*Pixels) bytes of memory from picBufSize to ptr2 // this copies the location of picBufSize to the pointer ptr2
-		memcpy(ptrNoise, picBufSize+Pixels, sizeof(uInt32)*Pixels);	// this will eventually contain the Noise values [6/7/2018] (!)
+		memcpy(ptrNoise, picBufSize+((numBlocks*(2/3))*Pixels), sizeof(uInt32)*Pixels);	// this will eventually contain the Noise values [6/7/2018] (!)
 	}
 	else{													// else: ...
 	// Generate pictures A and B for current frame
@@ -109,7 +109,8 @@ void CreateRandomFlicker_RT_int16(uInt32 frameCt, uInt32 Pixels, int16* tempLoc2
 
 		// ...copy (sizeof(uInt32)*Pixels) bytes of memory from picBufSize to ptr1
 		memcpy(ptr1, picBufSize, sizeof(uInt32)*Pixels);			// I_0(x,t)  // this is the initial signal; this function moves the frame shifted to the beginning of picBufSize for access by ptr1
-		
+		memcpy(ptrNoise, picBufSize + ((numBlocks*(2 / 3))*Pixels), sizeof(uInt32)*Pixels); // [6/11/2018]
+
 		if (frameCt%framePersist==0){							// if: ((current frame) mod framePersist) = 0... // similar to above, if the current frame is a 'new' frame (not a persisting frame)
          	for (uInt32 i=0; i<Pixels; i++){						// then for:  i, 0 -> (number of Pixels)...
 				picBufSize[(numBlocks-1)*Pixels + i] = rand();			// ...assign a random value to the index [(numBlocks-1)*Pixels+i] of array pointed to by picBufSize // the index is the (previous frame)*(# of pixels/frame) + current pixel value in for loop
@@ -168,6 +169,7 @@ void CreateRandomFlicker_RT_int16(uInt32 frameCt, uInt32 Pixels, int16* tempLoc2
 			rndFlt2 = floor(rndFlt2*2.0)*2.0 -1.0;				// [-1,1] : Binary // this assigns the value of the ((rounded down (rndFlt2*2)) *2 - 1) to the value rndFlt2
 			
 			rndNoise = (float)ptrNoise[i] / (float)RAND_MAX;
+			rndNoise = floor(rndNoise*2.0)*2.0 - 1.0;
 
 			if (TrialAN == 0 & TrialPPP == 0) {
 				ptrZ[i] = (float)((cont0*rndFlt1 + cont1 * rndFlt2) / (float)2.0);	// in [-(c0+c1)/2, +(c0+c1)/2] 	 // this assigns the pixel intensity values for a given frame, stored in ptrZ
@@ -176,7 +178,7 @@ void CreateRandomFlicker_RT_int16(uInt32 frameCt, uInt32 Pixels, int16* tempLoc2
 			// AN case: (if ANTrial = 1 & PPPTrial = 0)
 			//--------------------------------------------------------------------------------------
 			if (TrialAN == 1 & TrialPPP == 0) {
-				ptrZ[i] = (float)((cont0*rndFlt1 + cont1 * rndFlt2 + contNoise * rndNoise) / (float)2.0);
+				ptrZ[i] = (float)((cont0*rndFlt1 + cont1 * rndFlt2 + contNoise * rndNoise) / (float)3.0);
 					// NOTE: should ptrNoise[i] be defined as ptr1[i+(2/3(length(ptr1))) ?
 					// NOTE: to find length of an array in C++, typically use lengthArray = (sizeof(array)/sizeof(array[0])) or (sizeof(array)/sizeof(*array))
 			}
