@@ -428,10 +428,10 @@ void AOAI_TimeStamp_RTInterp( MenuReturnValues mValues, int idx )
 	/*****************************************************************/
 	// Load indices of pixel location before and after shift
 	/*****************************************************************/
-	int16	nTurns		= filesize_FlickerChange;			// # of times the stimulus change during experiment	
-	int16*	Loc2		= new int16 [(int16)Pixels*nTurns];		// New pixel locations
-	int16*	tempLoc2	= new int16 [(NRasterPoints-6)];	// Current pixel locations
-	int16*	Loc3		= new int16 [(int16)Pixels*nTurns];		// New pixel locations
+	int16	nTurns		= filesize_FlickerChange;				// # of times the stimulus change during experiment	
+	int16*	Loc2		= new int16 [(int16)Pixels*nTurns];		// Old pixel locations
+	int16*	tempLoc2	= new int16 [(NRasterPoints-6)];		// Current pixel locations
+	int16*	Loc3		= new int16 [(int16)Pixels*nTurns];		// Old pixel locations
 	int16*	tempLoc3	= new int16 [(NRasterPoints-6)];		// Current pixel locations
 
 	int16 *sortArray = new int16 [nTurns];
@@ -456,7 +456,7 @@ void AOAI_TimeStamp_RTInterp( MenuReturnValues mValues, int idx )
 	/*********************************************/	
 	// Load Analog Output Buffer
 	/*********************************************/
-	uInt32 dTBlocks		 = abs(min_deltaT)*(min_deltaT<0) + abs(max_deltaT)*(max_deltaT>0) + 1;  // Blocks for dT; gives # of timelags 
+	uInt32 dTBlocks		 = abs(min_deltaT)*(min_deltaT<0) + abs(max_deltaT)*(max_deltaT>0) + 1;  // Blocks for dT; (?)
 	uInt32 numBlocks	 = (dTBlocks > (uInt32)framePersist) ? dTBlocks : (uInt32)framePersist;	 // # Blocks determined by whichever is greater
 	uInt32 *picBufSize	 = new uInt32 [Pixels * numBlocks];			// Memory block for storing picture set 	
 	uInt32 *memRandInt	 = new uInt32 [(NRasterPoints-6)];			// Memory block for storing time-lagged picture	

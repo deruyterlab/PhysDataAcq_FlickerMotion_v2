@@ -66,10 +66,10 @@ void CreateRandomFlicker_RT_int16(uInt32 frameCt, uInt32 Pixels, int16* tempLoc2
 	int TrialPPP = mValues.PPPTrial;
 	float contNoise = mValues.AN;									// this will be the noise factor  // Need to add this as an inhereted value from MenuReturnValues (!)
 	if (TrialAN == 1) {
-		float noiseNorm = (((*alpha0) + (*alpha1) + contNoise) / 2.0);	// we will divide the other factors by this value in order to normalize the noise (m1+m2+N =< 2.0)
-		cont0 = *alpha0 * noiseNorm;									// this is the contrast on the original frame (m1), normalized
-		cont1 = *alpha1 * noiseNorm;									// this is the contrast on the time-lagged frame (m2), normalized
-		contNoise = contNoise * noiseNorm;								// normalize the predefined contNoise
+		//float noiseNorm = (((*alpha0) + (*alpha1) + contNoise) / 2.0);	// we will divide the other factors by this value in order to normalize the noise (m1+m2+N =< 2.0)
+		//cont0 = *alpha0 * noiseNorm;									// this is the contrast on the original frame (m1), normalized
+		//cont1 = *alpha1 * noiseNorm;									// this is the contrast on the time-lagged frame (m2), normalized
+		//contNoise = contNoise * noiseNorm;								// normalize the predefined contNoise
 	}
 
 	//}
@@ -98,7 +98,7 @@ void CreateRandomFlicker_RT_int16(uInt32 frameCt, uInt32 Pixels, int16* tempLoc2
 		}
 		memcpy(ptr1, picBufSize, sizeof(uInt32)*Pixels);		// copy (sizeof(uInt32)*Pixels) bytes of memory from picBufSize to ptr1 // this copies the location of picBufSize to the pointer ptr1
 		memcpy(ptr2, picBufSize, sizeof(uInt32)*Pixels);		// copy (sizeof(uInt32)*Pixels) bytes of memory from picBufSize to ptr2 // this copies the location of picBufSize to the pointer ptr2
-		memcpy(ptrNoise, picBufSize+((numBlocks*(2/3))*Pixels), sizeof(uInt32)*Pixels);	// this will eventually contain the Noise values [6/7/2018] (!)
+		memcpy(ptrNoise, picBufSize+(idxT*Pixels), sizeof(uInt32)*Pixels);	// this will eventually contain the Noise values [6/7/2018] (!) will this end on a partial frame?
 	}
 	else{													// else: ...
 	// Generate pictures A and B for current frame
@@ -109,7 +109,7 @@ void CreateRandomFlicker_RT_int16(uInt32 frameCt, uInt32 Pixels, int16* tempLoc2
 
 		// ...copy (sizeof(uInt32)*Pixels) bytes of memory from picBufSize to ptr1
 		memcpy(ptr1, picBufSize, sizeof(uInt32)*Pixels);			// I_0(x,t)  // this is the initial signal; this function moves the frame shifted to the beginning of picBufSize for access by ptr1
-		memcpy(ptrNoise, picBufSize + ((numBlocks*(2 / 3))*Pixels), sizeof(uInt32)*Pixels); // [6/11/2018]
+		memcpy(ptrNoise, picBufSize + (idxT*Pixels), sizeof(uInt32)*Pixels); // [6/11/2018]
 
 		if (frameCt%framePersist==0){							// if: ((current frame) mod framePersist) = 0... // similar to above, if the current frame is a 'new' frame (not a persisting frame)
          	for (uInt32 i=0; i<Pixels; i++){						// then for:  i, 0 -> (number of Pixels)...
@@ -169,6 +169,7 @@ void CreateRandomFlicker_RT_int16(uInt32 frameCt, uInt32 Pixels, int16* tempLoc2
 			rndFlt2 = floor(rndFlt2*2.0)*2.0 -1.0;				// [-1,1] : Binary // this assigns the value of the ((rounded down (rndFlt2*2)) *2 - 1) to the value rndFlt2
 			
 			rndNoise = (float)ptrNoise[i] / (float)RAND_MAX;
+			//rndNoise = rndNoise * 2.0 - 1.0;
 			rndNoise = floor(rndNoise*2.0)*2.0 - 1.0;
 
 			if (TrialAN == 0 & TrialPPP == 0) {
