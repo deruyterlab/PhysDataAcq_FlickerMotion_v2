@@ -410,6 +410,22 @@ void AO_TimeStamp_RTInterp( MenuReturnValues mValues, int idx )
 	ptrCont2->close();
 
 
+	cout << "16. ContrastNoise" << endl;
+	//---------------------------------------------
+	// Loading ContrastNoise
+	string strAO_ContN;
+	ifstream* ptrContN = 0;
+	uInt32 filesize_ContN;
+	vector<float> contN;
+
+	strAO_ContN = mValues.strStimFileDirPath + "\\" + "ContN.dat";
+	ptrContN = fnOpenFileToRead(strAO_ContN, &filesize_ContN);
+	contN.assign(filesize_ContN, 0);
+	for (uInt32 idx2 = 0; idx2 < filesize_Cont2; idx2++) {
+		ptrContN->read(reinterpret_cast<char*>(&outputBuffer), sizeof(float));
+		contN[idx2] = outputBuffer;
+	}
+	ptrContN->close();
 
 
 	/*****************************************************************/
@@ -454,7 +470,8 @@ void AO_TimeStamp_RTInterp( MenuReturnValues mValues, int idx )
 	uInt32 TypeCt		 = 0; //Increment by 1 when frame # corresponds to stimulus change
 	int16 frameLag		 = 0;	
 	float alpha0		 = 1.0; 
-	float alpha1		 = 1.0; 
+	float alpha1		 = 1.0;
+	float alphaN		 = 1.0;
 	for (int i=0; i<nTurns; i++) {cout << stimChange[i] << endl;}
 
 	cout << "NGridSamples = " << filesize_XPixelPos << endl;
@@ -466,8 +483,8 @@ void AO_TimeStamp_RTInterp( MenuReturnValues mValues, int idx )
 		AOOneChanBufSiz * 2, filesize_YawPos, filesize_XPixelPos, NZSignalRepeat, TotNFrames, NumAOChannels,
 		&X[0], &Y[0], &YawPosVec[0], &PitchPosVec[0], &RollPosVec[0], &LED_XPos[0], &LED_YPos[0], &WorldMapVec[0], 
 		Height, Width, Loc2, tempLoc2, Loc3, tempLoc3, picBufSize, &stimChange[0], &deltaTChange[0], &xLagChange[0], 
-		&yLagChange[0], &cont1[0], &cont2[0], framePersist, &frameLag, &TypeCt, numBlocks, ref_Zero, memRandInt, sd, 
-		&alpha0, &alpha1, filesize_TimeLag, merge, mValues); 
+		&yLagChange[0], &cont1[0], &cont2[0], &contN[0], framePersist, &frameLag, &TypeCt, numBlocks, ref_Zero, memRandInt, sd, 
+		&alpha0, &alpha1, &alphaN, filesize_TimeLag, merge, mValues); 
 	
 	TotNFrames = TotNFrames + NZSample + 1;
 	cout << "Number of frames preloaded into AO buffer: " << TotNFrames << endl << endl;
@@ -531,8 +548,7 @@ void AO_TimeStamp_RTInterp( MenuReturnValues mValues, int idx )
 	// DAQmx Initial Analog Output Write Code
 	/*********************************************/
 	//DAQmxErrChk (DAQmxWriteBinaryI16(AOHandle,AOOneChanBufSiz*NZSignalRepeat*2,AOAutoStart,AOStimTimeout,DAQmx_Val_GroupByScanNumber,&iAOBuffer[0],&NumAOSampWritten,NULL));
-	DAQmxErrChk (DAQmxWriteBinaryI16(AOHandle,AOBuffer_Siz/3,AOAutoStart,AOStimTimeout, \
-		DAQmx_Val_GroupByScanNumber,&iAOBuffer[0],&NumAOSampWritten,NULL));
+	DAQmxErrChk (DAQmxWriteBinaryI16(AOHandle,AOBuffer_Siz/3,AOAutoStart,AOStimTimeout,DAQmx_Val_GroupByScanNumber,&iAOBuffer[0],&NumAOSampWritten,NULL));
 	
 
 	/*********************************************/
@@ -598,13 +614,12 @@ void AO_TimeStamp_RTInterp( MenuReturnValues mValues, int idx )
 				AOOneChanBufSiz, filesize_YawPos, filesize_XPixelPos, NZSignalRepeat, TotNFrames, NumAOChannels,
 				&X[0], &Y[0], &YawPosVec[0], &PitchPosVec[0], &RollPosVec[0], &LED_XPos[0], &LED_YPos[0], 
 				&WorldMapVec[0], Height, Width, Loc2, tempLoc2, Loc3, tempLoc3, picBufSize, &stimChange[0], &deltaTChange[0], 
-				&xLagChange[0], &yLagChange[0], &cont1[0], &cont2[0], framePersist, &frameLag, &TypeCt, numBlocks, ref_Zero, memRandInt, 
-				sd, &alpha0, &alpha1, filesize_TimeLag, merge, mValues); 
+				&xLagChange[0], &yLagChange[0], &cont1[0], &cont2[0], &contN[0], framePersist, &frameLag, &TypeCt, numBlocks, ref_Zero, memRandInt, 
+				sd, &alpha0, &alpha1, &alphaN, filesize_TimeLag, merge, mValues); 
 
 			TotNFrames = TotNFrames + NZSample + 1;
 
-			DAQmxErrChk (DAQmxWriteBinaryI16(AOHandle,AOHalfBuf_Siz/3,0,1,DAQmx_Val_GroupByScanNumber,&iAOBuffer[0], \
-				&NumAOSampWritten,NULL));
+			DAQmxErrChk (DAQmxWriteBinaryI16(AOHandle,AOHalfBuf_Siz/3,0,1,DAQmx_Val_GroupByScanNumber,&iAOBuffer[0],&NumAOSampWritten,NULL));
 
 			cout << NHalfBufs << " ; AO Buffer Space: " << AOBufferSpaceFree << " ; AO Samples Written: " << NumAOSampWritten <<  endl;
 

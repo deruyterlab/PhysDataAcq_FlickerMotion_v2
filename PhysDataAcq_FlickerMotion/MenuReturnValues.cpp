@@ -62,7 +62,7 @@ MenuReturnValues::MenuReturnValues()
 	//bStimAutoStart		= 0;
 
 	//Parameters for H1 Extracellular Experiments - USING THE 608 OSCILLOSCOPE
-	iRecordType			= 4;
+	iRecordType			= 3;
 	strRecFileDirPath	= string("D:\\Scripts\\PhysDataAcqScripts\\Data");
 	strRecFileBaseName	= string("LED_Test_");
 	//strRecFileBaseName= string("HorzMovSinWav_Rep12_Vel051020_Len5");//test20080508

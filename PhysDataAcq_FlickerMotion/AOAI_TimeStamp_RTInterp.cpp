@@ -423,6 +423,23 @@ void AOAI_TimeStamp_RTInterp( MenuReturnValues mValues, int idx )
 	ptrCont2->close();
 
 
+	cout << "16. ContrastNoise" << endl;
+	//---------------------------------------------
+	// Loading ContrastNoise
+	string strAO_ContN;
+	ifstream* ptrContN = 0;
+	uInt32 filesize_ContN;
+	vector<float> contN;
+
+	strAO_ContN = mValues.strStimFileDirPath + "\\" + "ContN.dat";
+	ptrContN = fnOpenFileToRead(strAO_ContN, &filesize_ContN);
+	contN.assign(filesize_ContN, 0);
+	for (uInt32 idx2 = 0; idx2 < filesize_Cont2; idx2++) {
+		ptrContN->read(reinterpret_cast<char*>(&outputBuffer), sizeof(float));
+		contN[idx2] = outputBuffer;
+	}
+	ptrContN->close();
+
 
 
 	/*****************************************************************/
@@ -462,10 +479,11 @@ void AOAI_TimeStamp_RTInterp( MenuReturnValues mValues, int idx )
 	uInt32 *memRandInt	 = new uInt32 [(NRasterPoints-6)];			// Memory block for storing time-lagged picture	
 	uInt32 ref_Zero		 = abs(min_deltaT)*(min_deltaT<0);				// Set zero-reference for "picBufSize"
 
-	uInt32 TypeCt		= 0;
-	int16 frameLag		= 0;
+	uInt32 TypeCt		 = 0;
+	int16 frameLag		 = 0;
 	float alpha0		 = 1.0; 
 	float alpha1		 = 1.0; 
+	float alphaN		 = 1.0;
 	cout << "NGridSamples = " << filesize_XPixelPos << endl;
 
 
@@ -473,7 +491,7 @@ void AOAI_TimeStamp_RTInterp( MenuReturnValues mValues, int idx )
 		AOOneChanBufSiz * 2, filesize_YawPos, filesize_XPixelPos, NZSignalRepeat, TotNFrames, NumAOChannels,
 		&X[0], &Y[0], &YawPosVec[0], &PitchPosVec[0], &RollPosVec[0], &LED_XPos[0], &LED_YPos[0], 
 		&WorldMapVec[0], Height, Width, Loc2, tempLoc2, Loc3, tempLoc3, picBufSize, &stimChange[0], &deltaTChange[0], &xLagChange[0], 
-		&yLagChange[0], &cont1[0], &cont2[0], framePersist, &frameLag, &TypeCt, numBlocks, ref_Zero, memRandInt, sd, &alpha0, &alpha1, 
+		&yLagChange[0], &cont1[0], &cont2[0], &contN[0], framePersist, &frameLag, &TypeCt, numBlocks, ref_Zero, memRandInt, sd, &alpha0, &alpha1, &alphaN, 
 		filesize_TimeLag, merge, mValues);
 
 	TotNFrames = TotNFrames + NZSample + 1;
@@ -507,7 +525,7 @@ void AOAI_TimeStamp_RTInterp( MenuReturnValues mValues, int idx )
 	DAQmxErrChk (DAQmxCreateTask("AO",&AOHandle));
 	DAQmxErrChk (DAQmxCreateAOVoltageChan(AOHandle,PhysicalAOChannels,"",StimMinAmp,StimMaxAmp,DAQmx_Val_Volts,NULL));
 	DAQmxErrChk (DAQmxCfgSampClkTiming(AOHandle,"",StimSampRate,DAQmx_Val_Rising,DAQmx_Val_ContSamps,AOOneChanBufSiz*NZSignalRepeat));
-	DAQmxErrChk (DAQmxCfgOutputBuffer(AOHandle,AOBuffer_Siz/NumAOChannels)); // LOOK AT THIS!@!! Made this change and need to check. Switched AOHalfBuf_Siz for AOOneChanBufSiz
+	DAQmxErrChk (DAQmxCfgOutputBuffer(AOHandle, AOBuffer_Siz / NumAOChannels)); // LOOK AT THIS!@!! Made this change and need to check. Switched AOHalfBuf_Siz for AOOneChanBufSiz
 	DAQmxErrChk (DAQmxSetWriteRegenMode(AOHandle,DAQmx_Val_DoNotAllowRegen));
 	DAQmxErrChk (DAQmxGetSampClkRate(AOHandle, &ActualSampRate));	//Read the actual sample clock rate (eventually coerced depending on the hardware used).
 	cout << "The actual sample clock rate is: " << ActualSampRate << endl << endl;
@@ -541,7 +559,7 @@ void AOAI_TimeStamp_RTInterp( MenuReturnValues mValues, int idx )
 	// DAQmx Initial Analog Output Write Code
 	/*********************************************/
 	//DAQmxErrChk (DAQmxWriteBinaryI16(AOHandle,AOOneChanBufSiz*NZSignalRepeat*2,AOAutoStart,AOStimTimeout,DAQmx_Val_GroupByScanNumber,&iAOBuffer[0],&NumAOSampWritten,NULL));
-	DAQmxErrChk (DAQmxWriteBinaryI16(AOHandle,AOBuffer_Siz/3,AOAutoStart,AOStimTimeout,DAQmx_Val_GroupByScanNumber,&iAOBuffer[0],&NumAOSampWritten,NULL));
+	DAQmxErrChk (DAQmxWriteBinaryI16(AOHandle,AOBuffer_Siz/3,AOAutoStart,AOStimTimeout,DAQmx_Val_GroupByScanNumber,&iAOBuffer[0],&NumAOSampWritten,NULL)); // this casts the AO buffer to the CRT (?)
 
 	/*********************************************/
 	// Everything is prepared, start operation
@@ -600,12 +618,12 @@ void AOAI_TimeStamp_RTInterp( MenuReturnValues mValues, int idx )
 		if(AOBufferSpaceFree > AOOneChanBufSiz) {
 			++NHalfBufs;
 
-			NZSample = ConstructAOBuffer_RT_int16( &iAOBuffer[0],
+			/*NZSample = ConstructAOBuffer_RT_int16( &iAOBuffer[0],
 				AOOneChanBufSiz, filesize_YawPos, filesize_XPixelPos, NZSignalRepeat, TotNFrames, NumAOChannels,
-				&X[0], &Y[0], &YawPosVec[0], &PitchPosVec[0], &RollPosVec[0], &LED_XPos[0], &LED_YPos[0], 
-				&WorldMapVec[0], Height, Width, Loc2, tempLoc2, Loc3, tempLoc3, picBufSize, &stimChange[0], &deltaTChange[0], &xLagChange[0], 
-				&yLagChange[0], &cont1[0], &cont2[0], framePersist, &frameLag, &TypeCt, numBlocks, ref_Zero, memRandInt, sd, &alpha0, &alpha1,
-				filesize_TimeLag, merge, mValues); 
+				&X[0], &Y[0], &YawPosVec[0], &PitchPosVec[0], &RollPosVec[0], &LED_XPos[0], &LED_YPos[0],
+				&WorldMapVec[0], Height, Width, Loc2, tempLoc2, Loc3, tempLoc3, picBufSize, &stimChange[0], &deltaTChange[0], &xLagChange[0],
+				&yLagChange[0], &cont1[0], &cont2[0], &contN[0], framePersist, &frameLag, &TypeCt, numBlocks, ref_Zero, memRandInt, sd, &alpha0, &alpha1,
+				&alphaN, filesize_TimeLag, merge, mValues);*/        //Script runs when this is commented out; how vital (?) occurs in AO case without issue (!)
 
 			TotNFrames = TotNFrames + NZSample + 1;
 

@@ -73,11 +73,6 @@ int main(void)
 			//AORepAISimul( mRetVal ); //Configuraiton to use for photoreceptor recordings
 		}
 
-		if (mRetVal.iRecordType == 6) {
-			cout << "Flicker/AN/PPP." << endl;
-			PPP_AN(mRetVal, iIndex);
-		}
-
 		cout << " ----------> End of trial <---------- " << endl;
 		cout << endl;
 		cout << endl;

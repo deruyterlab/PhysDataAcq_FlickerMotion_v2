@@ -75,9 +75,6 @@
     <ClCompile Include="PhysDataAcq_FlickerMotion.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="PPP+AN.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Calibration.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

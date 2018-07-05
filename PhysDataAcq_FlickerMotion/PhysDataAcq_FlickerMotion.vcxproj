@@ -205,7 +205,6 @@
     <ClCompile Include="Menu.cpp" />
     <ClCompile Include="MenuReturnValues.cpp" />
     <ClCompile Include="PhysDataAcq_FlickerMotion.cpp" />
-    <ClCompile Include="PPP+AN.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AO.h" />

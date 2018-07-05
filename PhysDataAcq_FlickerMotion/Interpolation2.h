@@ -13,7 +13,7 @@ unsigned int Sub2Ind(float IMAGE_HEIGHT, float IMAGE_WIDTH, unsigned short ROW, 
 
 void CreateRandomFlicker_RT_int16(uInt32 frameCt, uInt32 Pixels, int16* tempLoc2, int16* tempLoc3, 
 									uInt32* picBufSize, int16* frameLag, uInt32 ref_Zero, uInt32 numBlocks, uInt16 framePersist, 
-									float* alpha0, float* alpha1, uInt32* ptr1, uInt32* ptr2, float *ptrZ, uInt32* ptrNoise, string merge, MenuReturnValues mValues);
+									float* alpha0, float* alpha1, float* alphaN, uInt32* ptr1, uInt32* ptr2, float *ptrZ, uInt32* ptrNoise, string merge, MenuReturnValues mValues);
 
 
 
@@ -22,9 +22,9 @@ uInt32 ConstructAOBuffer_RT_int16(  int16* pBuffer, uInt32 nbSamplePerChannel, u
 	int16* ptrYPixelPos, float* ptrYawPosVec, float* ptrPitchPosVec, float* ptrRollPosVec, 
 	float* ptrLED_XPos, float* ptrLED_YPos, float* WorldMapVec, float Height, float Width, 
 	int16* Loc2, int16* tempLoc2, int16* Loc3, int16* tempLoc3, uInt32* picBufSize, uInt32* stimChange, 
-	int16* deltaTChange, int16* xLagChange, int16* yLagChange, float* ptrCont1, float* ptrCont2, 
+	int16* deltaTChange, int16* xLagChange, int16* yLagChange, float* ptrCont1, float* ptrCont2, float* ptrContN,
 	uInt16 framePersist, int16* frameLag, uInt32* pTypeCt, uInt32 numBlocks, uInt32 ref_Zero, uInt32* memRandInt,
-	uInt16 sd, float* alpha0, float* alpha1, int16 nSegs, string merge, MenuReturnValues mValues);
+	uInt16 sd, float* alpha0, float* alpha1, float* alphaN, int16 nSegs, string merge, MenuReturnValues mValues);
 
 
 #endif

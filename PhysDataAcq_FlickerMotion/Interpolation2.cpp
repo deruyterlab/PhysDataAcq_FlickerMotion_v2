@@ -52,7 +52,7 @@ unsigned int Sub2Ind(float IMAGE_HEIGHT, float IMAGE_WIDTH, unsigned short Row, 
 
 void CreateRandomFlicker_RT_int16(uInt32 frameCt, uInt32 Pixels, int16* tempLoc2, int16* tempLoc3, 
 									uInt32* picBufSize, int16* frameLag, uInt32 ref_Zero, uInt32 numBlocks, uInt16 framePersist, 
-									float* alpha0, float* alpha1, uInt32* ptr1, uInt32* ptr2, float *ptrZ, uInt32* ptrNoise, string merge, MenuReturnValues mValues)
+									float* alpha0, float* alpha1, float* alphaN, uInt32* ptr1, uInt32* ptr2, float *ptrZ, uInt32* ptrNoise, string merge, MenuReturnValues mValues)
 
 
 {
@@ -62,9 +62,10 @@ void CreateRandomFlicker_RT_int16(uInt32 frameCt, uInt32 Pixels, int16* tempLoc2
 	float rndNoise = 0;				// this will be the float pulled from the random Noise values and used to make ptrZ[i] when TrialAN == 1;
 	float cont0 = *alpha0;
 	float cont1 = *alpha1;
+	float contN = *alphaN;
 	int TrialAN = mValues.ANTrial;
 	int TrialPPP = mValues.PPPTrial;
-	float contNoise = mValues.AN;									// this will be the noise factor  // Need to add this as an inhereted value from MenuReturnValues (!)
+	//float contNoise = mValues.AN;									// this will be the noise factor  // Need to add this as an inhereted value from MenuReturnValues (!)
 	if (TrialAN == 1) {
 		//float noiseNorm = (((*alpha0) + (*alpha1) + contNoise) / 2.0);	// we will divide the other factors by this value in order to normalize the noise (m1+m2+N =< 2.0)
 		//cont0 = *alpha0 * noiseNorm;									// this is the contrast on the original frame (m1), normalized
@@ -179,7 +180,7 @@ void CreateRandomFlicker_RT_int16(uInt32 frameCt, uInt32 Pixels, int16* tempLoc2
 			// AN case: (if ANTrial = 1 & PPPTrial = 0)
 			//--------------------------------------------------------------------------------------
 			if (TrialAN == 1 & TrialPPP == 0) {
-				ptrZ[i] = (float)((cont0*rndFlt1 + cont1 * rndFlt2 + contNoise * rndNoise) / (float)3.0);
+				ptrZ[i] = (float)((cont0*rndFlt1 + cont1 * rndFlt2 + contN * rndNoise) / (float)3.0);
 					// NOTE: should ptrNoise[i] be defined as ptr1[i+(2/3(length(ptr1))) ?
 					// NOTE: to find length of an array in C++, typically use lengthArray = (sizeof(array)/sizeof(array[0])) or (sizeof(array)/sizeof(*array))
 			}
@@ -215,9 +216,9 @@ uInt32 ConstructAOBuffer_RT_int16( int16* pBuffer, uInt32
 	int16* ptrYPixelPos, float* ptrYawPosVec, float* ptrPitchPosVec, float* ptrRollPosVec, 
 	float* ptrLED_XPos, float* ptrLED_YPos, float* WorldMapVec, float Height, float Width, 
 	int16* Loc2, int16* tempLoc2, int16* Loc3, int16* tempLoc3, uInt32* picBufSize, uInt32* stimChange, 
-	int16* deltaTChange, int16* xLagChange, int16* yLagChange, float* ptrCont1, float* ptrCont2, 
+	int16* deltaTChange, int16* xLagChange, int16* yLagChange, float* ptrCont1, float* ptrCont2, float* ptrContN,
 	uInt16 framePersist, int16* frameLag, uInt32* pTypeCt, uInt32 numBlocks, uInt32 ref_Zero, uInt32* memRandInt,
-	uInt16 sd, float* alpha0, float* alpha1, int16 nSegs, string merge, MenuReturnValues mValues) 
+	uInt16 sd, float* alpha0, float* alpha1, float* alphaN, int16 nSegs, string merge, MenuReturnValues mValues) 
 {
 		//Initialize the arrays for the INPUT buffer
 		// ---------------------------------------------------------------
@@ -339,6 +340,7 @@ uInt32 ConstructAOBuffer_RT_int16( int16* pBuffer, uInt32
 					*frameLag = deltaTChange[tempvar]; // point frameLag at the index [tempvar] of array deltaTChange
 					*alpha0	= ptrCont1[tempvar];	   // point alpha0 at the index [tempvar] of array ptrCont1
 					*alpha1 = ptrCont2[tempvar];       // point alpha1 at the index [tempvar] of array ptrCont2
+					*alphaN = ptrContN[tempvar];
 					(*pTypeCt)++;					   // increment the pTypeCt array by 1
 				}
 				// Correction for any out of range indices 
@@ -354,7 +356,7 @@ uInt32 ConstructAOBuffer_RT_int16( int16* pBuffer, uInt32
 				ct = 0;							// Counter for pixel 
 				CreateRandomFlicker_RT_int16(TotNFrames+idx3+idx2, NGridSamples-6, &tempLoc2[0], &tempLoc3[0], 
 									&picBufSize[0], frameLag, ref_Zero, numBlocks, framePersist, 
-									alpha0, alpha1, &ptr1[0], &ptr2[0], &ptrZ[0], &ptrNoise[0], merge, mValues);
+									alpha0, alpha1, alphaN, &ptr1[0], &ptr2[0], &ptrZ[0], &ptrNoise[0], merge, mValues);
 
 
 				// This one extra point is defined by an (X,Y,Z) triplet. This ensures the AOBuffer has 7500 values, or 2500 triplets.
