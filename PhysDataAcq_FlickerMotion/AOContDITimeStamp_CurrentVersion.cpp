@@ -15,6 +15,7 @@
 #include <d:\Scripts\PhysDataAcqScripts\Visual Studio Projects\PhysDataAcq_FlickerMotion\PhysDataAcq_FlickerMotion\NIDAQmx.h>
 
 #include "AOContDITimeStamp.h"
+#include "AOContDITimeStamp_Int16.h"
 #include "FileCtrl.h"
 #include "MenuReturnValues.h"
 

@@ -484,8 +484,12 @@ void AOAI_TimeStamp_RTInterp( MenuReturnValues mValues, int idx )
 	float alpha0		 = 1.0; 
 	float alpha1		 = 1.0; 
 	float alphaN		 = 1.0;
+	//for (int i = 0; i<nTurns; i++) { cout << stimChange[i] << endl; } //test
+
 	cout << "NGridSamples = " << filesize_XPixelPos << endl;
 
+	/*clock_t start;
+	start = clock();*/ //replicated from AO case
 
 	NZSample = ConstructAOBuffer_RT_int16( &iAOBuffer[0],
 		AOOneChanBufSiz * 2, filesize_YawPos, filesize_XPixelPos, NZSignalRepeat, TotNFrames, NumAOChannels,
@@ -493,10 +497,15 @@ void AOAI_TimeStamp_RTInterp( MenuReturnValues mValues, int idx )
 		&WorldMapVec[0], Height, Width, Loc2, tempLoc2, Loc3, tempLoc3, picBufSize, &stimChange[0], &deltaTChange[0], &xLagChange[0], 
 		&yLagChange[0], &cont1[0], &cont2[0], &contN[0], framePersist, &frameLag, &TypeCt, numBlocks, ref_Zero, memRandInt, sd, &alpha0, &alpha1, &alphaN, 
 		filesize_TimeLag, merge, mValues);
-
+	
 	TotNFrames = TotNFrames + NZSample + 1;
 	cout << "Number of Z samples written: " << TotNFrames << endl << endl;
 	NHalfBufs += 2;
+
+	/*start = clock() - start;
+	printf("\%f seconds \n", (float(start)) / CLOCKS_PER_SEC);*/ //replicated from AO case
+
+	cout << endl;
 
 	/*********************************************/
 	// DAQmx Reset Device
@@ -568,7 +577,8 @@ void AOAI_TimeStamp_RTInterp( MenuReturnValues mValues, int idx )
 	cout << "Continuously Timestamping Data." << endl;
 	cout << "Press any key to TERMINATE trial." << endl << endl;
 	
-	TotalHalfBufs = ( filesize_YawPos * (NRasterPoints + 1) ) / AOOneChanBufSiz * NRepeats;
+	TotalHalfBufs = (( filesize_YawPos * (NRasterPoints + 1) ) / AOOneChanBufSiz) * NRepeats;
+	//TotalHalfBufs = ((filesize_YawPos / 250) * NRepeats); //replicated from AO case
 	TotalHalfBufs = ceil( TotalHalfBufs ) + 0;
 	cout << "Number of half buffers to play: " << TotalHalfBufs << endl;
 
@@ -611,29 +621,44 @@ void AOAI_TimeStamp_RTInterp( MenuReturnValues mValues, int idx )
 		}
 
 
+		//cout << "Pre-Check Output Buffer Space Available." << endl; //error check
+
 		//********************************************
 		// DAQmx Check output buffer space available
 		//********************************************
 		DAQmxErrChk (DAQmxGetWriteSpaceAvail(AOHandle, &AOBufferSpaceFree));
 		if(AOBufferSpaceFree > AOOneChanBufSiz) {
 			++NHalfBufs;
+				/*clock_t start;
+				start = clock();*/ //replicated from AO case
+
+			cout << "# of Half Buffers: " << NHalfBufs << endl; //error check
+
+			cout << "Pre-Second NZSample." << endl; //error check; gets to this fine-- problem lies with NZSample = ConstructAOBuffer_RT_int16() below
 
 			/*NZSample = ConstructAOBuffer_RT_int16( &iAOBuffer[0],
 				AOOneChanBufSiz, filesize_YawPos, filesize_XPixelPos, NZSignalRepeat, TotNFrames, NumAOChannels,
 				&X[0], &Y[0], &YawPosVec[0], &PitchPosVec[0], &RollPosVec[0], &LED_XPos[0], &LED_YPos[0],
 				&WorldMapVec[0], Height, Width, Loc2, tempLoc2, Loc3, tempLoc3, picBufSize, &stimChange[0], &deltaTChange[0], &xLagChange[0],
 				&yLagChange[0], &cont1[0], &cont2[0], &contN[0], framePersist, &frameLag, &TypeCt, numBlocks, ref_Zero, memRandInt, sd, &alpha0, &alpha1,
-				&alphaN, filesize_TimeLag, merge, mValues);*/        //Script runs when this is commented out; how vital (?) occurs in AO case without issue (!)
+				&alphaN, (int16) filesize_TimeLag, merge, mValues); */      //Script runs when this is commented out; how vital (?) occurs in AO case without issue (!)
+
+			cout << "Post-Second NZSample; Pre-DAQmxWriteBinaryI16()." << endl; //error check
 
 			TotNFrames = TotNFrames + NZSample + 1;
 
+			//DAQmxWriteBinaryI16(AOHandle, AOHalfBuf_Siz / 3, 0, 1, DAQmx_Val_GroupByScanNumber, &iAOBuffer[0], &NumAOSampWritten, NULL);
 			DAQmxErrChk (DAQmxWriteBinaryI16(AOHandle,AOHalfBuf_Siz/3,0,1,DAQmx_Val_GroupByScanNumber,&iAOBuffer[0],&NumAOSampWritten,NULL));
 			//DAQmxErrChk (DAQmxWriteBinaryI16(AOHandle,AOOneChanBufSiz*NZSignalRepeat,0,1,DAQmx_Val_GroupByScanNumber,&iAOBuffer[0],&NumAOSampWritten,NULL));
+			
+			cout << "Post-DAQmxWriteBinaryI16()." << endl; //error check
 
 			cout << NHalfBufs << " ; AO Buffer Space: " << AOBufferSpaceFree << " ; AO Samples Written: " << NumAOSampWritten << endl << endl;
 
 			//ptrInterpPixelVals->write( reinterpret_cast<char *> (&iAOBuffer[0]), AOHalfBuf_Siz * sizeof (int16) );
 		}
+
+		//cout << "Post-Check Output Buffer Space Available." << endl; //error check
 
 		//********************************************
 		// DAQmx Check Analog Input space available

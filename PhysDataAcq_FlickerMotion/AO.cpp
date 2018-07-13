@@ -14,6 +14,7 @@
 
 #include "AO.h"
 #include "FileCtrl.h"
+#include "Interpolation2.h"
 #include "MenuReturnValues.h"
 
 #define DAQmxErrChk(functionCall) if( DAQmxFailed(error=(functionCall)) ) goto Error; else

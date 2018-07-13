@@ -169,23 +169,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="AO.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="AOAIContDIStamp.cpp" />
     <ClCompile Include="AOAI_TimeStamp_RTInterp.cpp" />
     <ClCompile Include="AOContAISimul.cpp" />
-    <ClCompile Include="AOContDITimeStamp.cpp" />
-    <ClCompile Include="AOContDITimeStamp_CurrentVersion.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="AOContDITimeStamp_Int16.cpp" />
-    <ClCompile Include="AOContDITimeStamp_v2.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="AORep.cpp" />
     <ClCompile Include="AORepAISimul.cpp" />
     <ClCompile Include="AO_TimeStamp_RTInterp.cpp" />
@@ -207,7 +193,6 @@
     <ClCompile Include="PhysDataAcq_FlickerMotion.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AO.h" />
     <ClInclude Include="AOAIContDIStamp.h" />
     <ClInclude Include="nisyscfg.h" />
     <ClInclude Include="nisyscfg_errors.h" />

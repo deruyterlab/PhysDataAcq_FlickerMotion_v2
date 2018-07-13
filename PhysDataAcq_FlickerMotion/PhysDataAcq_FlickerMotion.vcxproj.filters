@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="AO.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="AO_TimeStamp_RTInterp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -28,18 +25,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="AOContAISimul.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="AOContDITimeStamp.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="AOContDITimeStamp_CurrentVersion.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="AOContDITimeStamp_Int16.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="AOContDITimeStamp_v2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="AORep.cpp">
@@ -80,9 +65,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AO.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="AO_TimeStamp_RTInterp.h">
       <Filter>Header Files</Filter>
     </ClInclude>

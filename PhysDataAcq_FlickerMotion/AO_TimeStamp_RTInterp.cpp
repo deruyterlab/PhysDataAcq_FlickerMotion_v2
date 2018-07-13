@@ -521,8 +521,7 @@ void AO_TimeStamp_RTInterp( MenuReturnValues mValues, int idx )
 	/*********************************************/
 	// DAQmx Configure Code for Analog Output
 	/*********************************************/
-	DAQmxErrChk (DAQmxCreateTask("AO",&
-		AOHandle));
+	DAQmxErrChk (DAQmxCreateTask("AO",&AOHandle));
 	DAQmxErrChk (DAQmxCreateAOVoltageChan(AOHandle,PhysicalAOChannels,"",StimMinAmp,StimMaxAmp,DAQmx_Val_Volts,NULL));
 	DAQmxErrChk (DAQmxCfgSampClkTiming(AOHandle,"",StimSampRate,DAQmx_Val_Rising,DAQmx_Val_ContSamps,AOOneChanBufSiz*NZSignalRepeat));
 	DAQmxErrChk (DAQmxCfgOutputBuffer(AOHandle,AOBuffer_Siz/NumAOChannels)); // LOOK AT THIS!@!! Made this change and need to check. Switched AOHalfBuf_Siz for AOOneChanBufSiz
@@ -610,12 +609,16 @@ void AO_TimeStamp_RTInterp( MenuReturnValues mValues, int idx )
 				clock_t start; 
 				start = clock(); 
 
+			cout << "Pre-Second NZSample" << endl; //error check
+
 			NZSample = ConstructAOBuffer_RT_int16( &iAOBuffer[0],
 				AOOneChanBufSiz, filesize_YawPos, filesize_XPixelPos, NZSignalRepeat, TotNFrames, NumAOChannels,
 				&X[0], &Y[0], &YawPosVec[0], &PitchPosVec[0], &RollPosVec[0], &LED_XPos[0], &LED_YPos[0], 
 				&WorldMapVec[0], Height, Width, Loc2, tempLoc2, Loc3, tempLoc3, picBufSize, &stimChange[0], &deltaTChange[0], 
 				&xLagChange[0], &yLagChange[0], &cont1[0], &cont2[0], &contN[0], framePersist, &frameLag, &TypeCt, numBlocks, ref_Zero, memRandInt, 
 				sd, &alpha0, &alpha1, &alphaN, filesize_TimeLag, merge, mValues); 
+				
+			cout << "Post-Second NZSample" << endl; //error check
 
 			TotNFrames = TotNFrames + NZSample + 1;
 

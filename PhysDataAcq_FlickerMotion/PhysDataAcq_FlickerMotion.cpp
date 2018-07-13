@@ -12,6 +12,7 @@ Current Version 2.02
 #include <d:\Scripts\PhysDataAcqScripts\Visual Studio Projects\PhysDataAcq_FlickerMotion_v2\PhysDataAcq_FlickerMotion\DynamicRandGen.h>
 #include "MenuReturnValues.h"
 #include "Menu.h"
+#include "AO.h"
 #include "AOContDITimeStamp.h"
 #include "DOContDITimeStamp.h"
 #include "AOAIContDIStamp.h"
@@ -46,10 +47,10 @@ int main(void)
 		/*********************************************/
 		// Execute Appropriate DAQ Sub-routine
 		/*********************************************/
-		if (mRetVal.iRecordType == 1) {
+		/*if (mRetVal.iRecordType == 1) {
 			cout << "Continuous Analog Output (NI) and Timestamped DI." << endl;
 			AOContDITimeStamp_Int16(mRetVal, iIndex); //Configuraiton for use with NI Analog output
-		}
+		}*/
 
 		if (mRetVal.iRecordType == 2) {
 			cout << "Digital Output Trigger with Timestamped Digital Input." << endl;
@@ -59,7 +60,7 @@ int main(void)
 		if (mRetVal.iRecordType == 3) {
 			cout << "Continuous AO, AI, Timestamping, and RT Interpolation." << endl;
 			AOAI_TimeStamp_RTInterp(mRetVal, iIndex);
-			//AOAIContDIStamp( mRetVal, iIndex );
+			//AOAIContRTStamp( mRetVal, iIndex );
 		}
 
 		if (mRetVal.iRecordType == 4) {
@@ -67,11 +68,11 @@ int main(void)
 			AO_TimeStamp_RTInterp(mRetVal, iIndex); //Configuraiton to use for photoreceptor recordings
 		}
 
-		if (mRetVal.iRecordType == 5) {
+		/*if (mRetVal.iRecordType == 5) {
 			cout << "Find Cell. Continuous Presentation with No Analog Input." << endl;
 			AOContDITimeStamp(mRetVal, iIndex);
 			//AORepAISimul( mRetVal ); //Configuraiton to use for photoreceptor recordings
-		}
+		}*/
 
 		cout << " ----------> End of trial <---------- " << endl;
 		cout << endl;
