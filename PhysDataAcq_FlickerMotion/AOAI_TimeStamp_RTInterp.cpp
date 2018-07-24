@@ -445,7 +445,8 @@ void AOAI_TimeStamp_RTInterp( MenuReturnValues mValues, int idx )
 	/*****************************************************************/
 	// Load indices of pixel location before and after shift
 	/*****************************************************************/
-	int16	nTurns		= filesize_FlickerChange;				// # of times the stimulus change during experiment	
+	//int16	nTurns		=  (int16)filesize_FlickerChange;				// # of times the stimulus change during experiment	//specified int16 cast to suppress error
+	int16	nTurns		=  (int16)(filesize_TimeLag);			// replicated from AO_TimeStamp_RTInterp.cpp [7/20/2018]
 	int16*	Loc2		= new int16 [(int16)Pixels*nTurns];		// Old pixel locations
 	int16*	tempLoc2	= new int16 [(NRasterPoints-6)];		// Current pixel locations
 	int16*	Loc3		= new int16 [(int16)Pixels*nTurns];		// Old pixel locations
@@ -457,7 +458,8 @@ void AOAI_TimeStamp_RTInterp( MenuReturnValues mValues, int idx )
 	std::sort(sortArray, sortArray+nTurns);	
 	min_deltaT = sortArray[0];	
 	max_deltaT = sortArray[nTurns-1];
-	//cout << "\n" << min_deltaT << "\t " << max_deltaT << endl;
+	cout << "\n" << min_deltaT << "\t " << max_deltaT << endl;
+	cout << "N Turns = " << nTurns << endl;
 	delete [] sortArray;
 
 	IndexRelocate(nTurns, &xLagChange[0], &yLagChange[0], nRowsHigh, nRowsLow, nColsHigh, nColsLow, Pixels, &oddXstepY[0], &oddYstepX[0], Loc2);	
@@ -484,26 +486,26 @@ void AOAI_TimeStamp_RTInterp( MenuReturnValues mValues, int idx )
 	float alpha0		 = 1.0; 
 	float alpha1		 = 1.0; 
 	float alphaN		 = 1.0;
-	//for (int i = 0; i<nTurns; i++) { cout << stimChange[i] << endl; } //test
+	for (int i = 0; i<nTurns; i++) { cout << stimChange[i] << endl; } //test, replicated from AO case
 
 	cout << "NGridSamples = " << filesize_XPixelPos << endl;
 
-	/*clock_t start;
-	start = clock();*/ //replicated from AO case
+	clock_t start;
+	start = clock(); //replicated from AO case
 
-	NZSample = ConstructAOBuffer_RT_int16( &iAOBuffer[0],
+	DAQmxErrChk(NZSample = ConstructAOBuffer_RT_int16( &iAOBuffer[0],
 		AOOneChanBufSiz * 2, filesize_YawPos, filesize_XPixelPos, NZSignalRepeat, TotNFrames, NumAOChannels,
-		&X[0], &Y[0], &YawPosVec[0], &PitchPosVec[0], &RollPosVec[0], &LED_XPos[0], &LED_YPos[0], 
-		&WorldMapVec[0], Height, Width, Loc2, tempLoc2, Loc3, tempLoc3, picBufSize, &stimChange[0], &deltaTChange[0], &xLagChange[0], 
-		&yLagChange[0], &cont1[0], &cont2[0], &contN[0], framePersist, &frameLag, &TypeCt, numBlocks, ref_Zero, memRandInt, sd, &alpha0, &alpha1, &alphaN, 
-		filesize_TimeLag, merge, mValues);
+		&X[0], &Y[0], &YawPosVec[0], &PitchPosVec[0], &RollPosVec[0], &LED_XPos[0], &LED_YPos[0], &WorldMapVec[0],
+		Height, Width, Loc2, tempLoc2, Loc3, tempLoc3, picBufSize, &stimChange[0], &deltaTChange[0], &xLagChange[0], 
+		&yLagChange[0], &cont1[0], &cont2[0], &contN[0], framePersist, &frameLag, &TypeCt, numBlocks, ref_Zero, memRandInt, sd,
+		&alpha0, &alpha1, &alphaN, (int16) filesize_TimeLag, merge, mValues));
 	
 	TotNFrames = TotNFrames + NZSample + 1;
 	cout << "Number of Z samples written: " << TotNFrames << endl << endl;
 	NHalfBufs += 2;
 
-	/*start = clock() - start;
-	printf("\%f seconds \n", (float(start)) / CLOCKS_PER_SEC);*/ //replicated from AO case
+	start = clock() - start; //replicated from AO case
+	printf("\%f seconds \n", (float(start)) / CLOCKS_PER_SEC); //replicated from AO case
 
 	cout << endl;
 
@@ -527,6 +529,8 @@ void AOAI_TimeStamp_RTInterp( MenuReturnValues mValues, int idx )
 	DAQmxErrChk (DAQmxCreateCICountEdgesChan(CO2Handle,"Dev2/ctr1","",DAQmx_Val_Rising,0,DAQmx_Val_CountUp));
 	DAQmxErrChk (DAQmxCfgSampClkTiming(CO2Handle,"/Dev2/PFI4",100000.0,DAQmx_Val_Rising,DAQmx_Val_ContSamps,2000));
 	DAQmxErrChk (DAQmxSetCICountEdgesTerm(CO2Handle,"","/Dev2/100kHzTimebase"));
+	DAQmxErrChk(DAQmxGetSampClkRate(CO2Handle, &ActualSampRate));	//Read the actual sample clock rate (eventually coerced depending on the hardware used).
+	cout << "The time stamp rate is: " << ActualSampRate << endl << endl;
 
 	/*********************************************/
 	// DAQmx Configure Code for Analog Output
@@ -578,7 +582,7 @@ void AOAI_TimeStamp_RTInterp( MenuReturnValues mValues, int idx )
 	cout << "Press any key to TERMINATE trial." << endl << endl;
 	
 	TotalHalfBufs = (( filesize_YawPos * (NRasterPoints + 1) ) / AOOneChanBufSiz) * NRepeats;
-	//TotalHalfBufs = ((filesize_YawPos / 250) * NRepeats); //replicated from AO case
+	//TotalHalfBufs = (((filesize_YawPos) / 250) * NRepeats); //replicated from AO case
 	TotalHalfBufs = ceil( TotalHalfBufs ) + 0;
 	cout << "Number of half buffers to play: " << TotalHalfBufs << endl;
 
@@ -628,20 +632,21 @@ void AOAI_TimeStamp_RTInterp( MenuReturnValues mValues, int idx )
 		//********************************************
 		DAQmxErrChk (DAQmxGetWriteSpaceAvail(AOHandle, &AOBufferSpaceFree));
 		if(AOBufferSpaceFree > AOOneChanBufSiz) {
+			cout << AOBufferSpaceFree << " \t" << AOOneChanBufSiz << "\t" << iAOBuffer[0] << endl;
 			++NHalfBufs;
-				/*clock_t start;
-				start = clock();*/ //replicated from AO case
+				clock_t start;
+				start = clock(); //replicated from AO case
 
 			cout << "# of Half Buffers: " << NHalfBufs << endl; //error check
 
 			cout << "Pre-Second NZSample." << endl; //error check; gets to this fine-- problem lies with NZSample = ConstructAOBuffer_RT_int16() below
 
-			/*NZSample = ConstructAOBuffer_RT_int16( &iAOBuffer[0],
+			DAQmxErrChk(NZSample = ConstructAOBuffer_RT_int16( &iAOBuffer[0],
 				AOOneChanBufSiz, filesize_YawPos, filesize_XPixelPos, NZSignalRepeat, TotNFrames, NumAOChannels,
 				&X[0], &Y[0], &YawPosVec[0], &PitchPosVec[0], &RollPosVec[0], &LED_XPos[0], &LED_YPos[0],
 				&WorldMapVec[0], Height, Width, Loc2, tempLoc2, Loc3, tempLoc3, picBufSize, &stimChange[0], &deltaTChange[0], &xLagChange[0],
 				&yLagChange[0], &cont1[0], &cont2[0], &contN[0], framePersist, &frameLag, &TypeCt, numBlocks, ref_Zero, memRandInt, sd, &alpha0, &alpha1,
-				&alphaN, (int16) filesize_TimeLag, merge, mValues); */      //Script runs when this is commented out; how vital (?) occurs in AO case without issue (!)
+				&alphaN, (int16) filesize_TimeLag, merge, mValues));      //Script runs when this is commented out; how vital (?) occurs in AO case without issue (!)
 
 			cout << "Post-Second NZSample; Pre-DAQmxWriteBinaryI16()." << endl; //error check
 

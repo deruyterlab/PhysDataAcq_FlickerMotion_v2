@@ -56,6 +56,9 @@ void CreateRandomFlicker_RT_int16(uInt32 frameCt, uInt32 Pixels, int16* tempLoc2
 
 
 {
+
+	//cout << "CRFRTint16 : initialization" << endl; //error check
+	
 	uInt32 idxT		= 0;
 	float rndFlt1	= 0;
 	float rndFlt2	= 0;
@@ -105,8 +108,10 @@ void CreateRandomFlicker_RT_int16(uInt32 frameCt, uInt32 Pixels, int16* tempLoc2
 	// Generate pictures A and B for current frame
 	// ---------------------------------------------------------------
 
-		// ...move (sizeof(uInt32)*Pixels*(numBlocks-1)) bytes of memory from (picBufSize+Pixels) to picBufSize
-		memmove(picBufSize, picBufSize+Pixels, sizeof(uInt32)*Pixels*(numBlocks-1)); // this shifts the frame of length Pixels to the beginning of picBufSize
+		// ***** CRUCIAL TO FIGURE OUT ****
+		// ...move <--> COPY (sizeof(uInt32)*Pixels*(numBlocks-1)) bytes of memory from (picBufSize+Pixels) to picBufSize // 7-17-2018, switched memmove to memcpy in attempt to address large performance issues when running AOAI
+		memmove(picBufSize, picBufSize+Pixels, sizeof(uInt32)*Pixels*(numBlocks-1)); // this shifts the frame of length Pixels to the beginning of picBufSize //this line is causing AOAI crash
+		//*(numBlocks-1) // changed parameter 3 of memmove fn from: sizeof(uInt32)*Pixels*(numBlocks-1) --> sizeof(uInt32)*Pixels // 7-17-2018 AOAI runs fine this way but need to figure out what we lose by doing so
 
 		// ...copy (sizeof(uInt32)*Pixels) bytes of memory from picBufSize to ptr1
 		memcpy(ptr1, picBufSize, sizeof(uInt32)*Pixels);			// I_0(x,t)  // this is the initial signal; this function moves the frame shifted to the beginning of picBufSize for access by ptr1
@@ -138,6 +143,8 @@ void CreateRandomFlicker_RT_int16(uInt32 frameCt, uInt32 Pixels, int16* tempLoc2
 						picBufSize[idxT*Pixels + tempLoc3[i]])/2.0);
 				}
 			}
+
+			//cout << "CRFRTint16 : end" << endl; //error check
 		}
 
 		 
@@ -220,12 +227,15 @@ uInt32 ConstructAOBuffer_RT_int16( int16* pBuffer, uInt32
 	uInt16 framePersist, int16* frameLag, uInt32* pTypeCt, uInt32 numBlocks, uInt32 ref_Zero, uInt32* memRandInt,
 	uInt16 sd, float* alpha0, float* alpha1, float* alphaN, int16 nSegs, string merge, MenuReturnValues mValues) 
 {
+		cout << "CAOB : initialize INPUT buffer arrays, 223" << endl; //error check
+
 		//Initialize the arrays for the INPUT buffer
 		// ---------------------------------------------------------------
 		uInt32	nFrame	= (uInt32) nbSamplePerChannel/NumAOChannels; // the number of frames is set to the value (number of samples per channel / number of analog output channels)
 		uInt32	idx1 = 0, idx2	= 0, idx3 = 0, idx4 = 0;			 // initialize our four counters (idx1 = sample counter, idx2 = per-frame raster number, idx3 = frame number, idx4 = number of Z signal repeats)
 		int		counter = 0;										 // Counter for # of AO samples produced
 		uInt32	temp	= -1; 	
+		int		counterErr = 0;
 		
 		float WorldMap_XCoord = 0;	// X-coordinates for interpolated LED intensities
 		float WorldMap_YCoord = 0;	// Y-coordinates for interpolated LED intensities
@@ -255,13 +265,16 @@ uInt32 ConstructAOBuffer_RT_int16( int16* pBuffer, uInt32
 		float  n1 = 0;				 // used for keeping frame count when stimulus changes (adapt-test stim)
 		uInt32 n2; 
 		
-		
+		cout << "CAOB : set seed for RNG, 260" << endl; //error check
+
 		// Set seed for random number generator (occurs before the very first frame of a trial is called)
 		// ---------------------------------------------------------------
 		if (TotNFrames==0){	
 			srand(sd); // pseudo-random number generator with seed int 'sd'; pseudo-random implies that returned random list will be repeated
 		}
 		
+		//cout << "CAOB : read data from INPUT file into INPUT buffer, 268" << endl; //error check
+
 		//Read the data from the INPUT file into the INPUT buffer
 		for ( uInt32 idx1 = 0; idx1 < nbSamplePerChannel; idx1++ ) { // for loop: increment the sample count from 0 to (number of samples per channel) [0 -> 416500, counts through 1 time]
 			idx2 = idx1 % NGridSamples ;							 // the raster number will equal (sample count) mod (number of grid samples) [0 -> 832, counts through 500 times]
@@ -270,6 +283,11 @@ uInt32 ConstructAOBuffer_RT_int16( int16* pBuffer, uInt32
 
 
 			if (idx3 != temp) {		// if: the frame number is not the same as 'temp'	
+
+				//cout << "CAOB : if idx3 != temp, 279 : " << counterErr << endl; //error check //only writes 250 samples following initial write of 500
+
+				counterErr++;
+
 				temp = idx3;		// Counter for frame change; set temp equal to the frame number
 				
 				/*
@@ -333,8 +351,12 @@ uInt32 ConstructAOBuffer_RT_int16( int16* pBuffer, uInt32
 				// ---------------------------------------------------------------
 				// IMP :: [Loc2, Loc3] => correspond to different (odd) or same (even) pixel locations of the same delayed image
 				// NOTE: struct for memcpy is: void* memcpy( void* dest, const void* src, std::size_t count );
+
+				//cout << "CAOB : set up tempvar, 345 : " << counterErr << endl; //error check
+
 				tempvar = (int16)(*pTypeCt%nSegs); // set value for tempvar equal to (*pTypeCt mod (number of segments in trial))
 				if ((TotNFrames+idx3+idx2) == stimChange[*pTypeCt])	{ // if: ((total # of frames) + (current frame number) + (current raster point)) = (value in stimChange matrix pointed at by pointer *pTypeCt)...
+					cout << "CAOB : tempvar memcpy" << endl; //error check
 					memcpy(tempLoc2, Loc2+(tempvar)*(NGridSamples-6), sizeof(int16)*(NGridSamples-6));	// then: ...copy (sizeof(int16)*(# Grid Samples - 6)) bytes of memory from (Loc2+(tempvar*(# Grid Samples - 6))) to tempLoc2			
 					memcpy(tempLoc3, Loc3+(tempvar)*(NGridSamples-6), sizeof(int16)*(NGridSamples-6));	// then: ...copy (sizeof(int16)*(# Grid Samples - 6)) bytes of memory from (Loc3+(tempvar*(# Grid Samples - 6))) to tempLoc3			
 					*frameLag = deltaTChange[tempvar]; // point frameLag at the index [tempvar] of array deltaTChange
@@ -343,14 +365,19 @@ uInt32 ConstructAOBuffer_RT_int16( int16* pBuffer, uInt32
 					*alphaN = ptrContN[tempvar];
 					(*pTypeCt)++;					   // increment the pTypeCt array by 1
 				}
+
+				//cout << "CAOB : correction for out of range indices, 358" << endl; //error check
+
 				// Correction for any out of range indices 
 				// ---------------------------------------------------------------
 				for (int i=0; i<NGridSamples-6; i++){								 // checks each raster point value
+					//cout << "CAOB : check raster point values OOR" << endl; //error check
 					tempLoc2[i] = (tempLoc2[i]>NGridSamples-6-1) ? -1 : tempLoc2[i]; // sets tempLoc2[i] to -1 if () is true, does not change tempLoc2[i] if false
 					tempLoc3[i] = (tempLoc3[i]>NGridSamples-6-1) ? -1 : tempLoc3[i]; // sets tempLoc3[i] to -1 if () is true, does not change tempLoc3[i] if false
 				}
-
 				
+				//cout << "CAOB : call the flicker generating function, 367" << endl; //error check
+
 				// Call the flicker generating function 
 				// ---------------------------------------------------------------
 				ct = 0;							// Counter for pixel 
@@ -358,6 +385,7 @@ uInt32 ConstructAOBuffer_RT_int16( int16* pBuffer, uInt32
 									&picBufSize[0], frameLag, ref_Zero, numBlocks, framePersist, 
 									alpha0, alpha1, alphaN, &ptr1[0], &ptr2[0], &ptrZ[0], &ptrNoise[0], merge, mValues);
 
+				//cout << "CAOB : initialize pBuffer values, 376" << endl; //error check
 
 				// This one extra point is defined by an (X,Y,Z) triplet. This ensures the AOBuffer has 7500 values, or 2500 triplets.
 				// ---------------------------------------------------------------
@@ -368,10 +396,14 @@ uInt32 ConstructAOBuffer_RT_int16( int16* pBuffer, uInt32
 				pBuffer[counter++] = 0;				  // sets the value 0 to the first index of pBuffer, increments counter by 1
 				// altogether, the above three lines of code will put [...,XPixelPos[0],YPixelPos[0],0,...] into the pBuffer array
 			}
+			
+			//cout << "CAOB : made it out of if(idx3 != temp) loop" << endl;
 
  			for ( uInt32 idx4 = 0; idx4 < NZRpt; ++idx4 ) { // idx4 counts the number of repeats for the Z signal
 				pBuffer[counter++] = ptrXPixelPos[idx2];	// X Signal; sets pBuffer[counter] to value at index [idx2] of XPixelPos array, increments counter by 1
 				pBuffer[counter++] = ptrYPixelPos[idx2];	// Y signal; sets pBuffer[counter] to value at index [idx2] of YPixelPos array; increments counter by 1
+
+				//cout << "CAOB : set Z signal, 392" << endl; //error check
 
 				// Z signal
 				// ---------------------------------------------------------------
@@ -382,6 +414,8 @@ uInt32 ConstructAOBuffer_RT_int16( int16* pBuffer, uInt32
 				else if ( idx4 == 1 ) // else if: this is the first repeat of the Z signal...
 				{
 					
+					//cout << "CAOB : find coord of world map closest to LED positions, 403" << endl; //error check
+
 					//-----------------FIND COORDINATES OF WORLD MAP CLOSEST TO LED POSITIONS------------------------
 					//XPos =  ( ptrLED_XPos[idx2] * cos(2 * PI * ptrRollPosVec[TotNFrames+idx3]/360) ) + ( ptrLED_YPos[idx2] * sin(2 * PI * ptrRollPosVec[TotNFrames+idx3]/360) );
 					//YPos = -( ptrLED_XPos[idx2] * sin(2 * PI * ptrRollPosVec[TotNFrames+idx3]/360) ) + ( ptrLED_YPos[idx2] * cos(2 * PI * ptrRollPosVec[TotNFrames+idx3]/360) );
@@ -395,6 +429,7 @@ uInt32 ConstructAOBuffer_RT_int16( int16* pBuffer, uInt32
 					// THEN: set the WorldMap_XCoord to ( (XPos + (the index [Total # of frames + current frame #] in the array PitchPosVec)) - (XPos + ((the index [Total # of frames + current frame #] in the array PitchPosVec)/Height)) * Height
 					WorldMap_YCoord = (YPos+ptrPitchPosVec[TotNFrames+idx3]) - (int16)((YPos+ptrPitchPosVec[TotNFrames+idx3])/Height)*Height;
 					
+					//cout << "CAOB : convert negative val back to posi val, 418" << endl; //error check
 
 					//These lines of code are required to convert negative values back to a legal positive values (e.g. mod(-190,3600)=3410)
 					// ---------------------------------------------------------------
@@ -402,6 +437,8 @@ uInt32 ConstructAOBuffer_RT_int16( int16* pBuffer, uInt32
 						WorldMap_XCoord += Width;  // then: ...increment WorldMap_XCoord by the Width
 					if (WorldMap_YCoord < 0 )	   // if: WorldMap_YCoord is less than 0...
 						WorldMap_YCoord += Height; // then: ...increment WorldMap_YCoord by the Height
+
+					//cout << "CAOB : set val for R + C displacements for interpolation" << endl; //error check
 
 					// Set values for Row and Column displacements to be used during interpolation
 					// ---------------------------------------------------------------
@@ -414,6 +451,7 @@ uInt32 ConstructAOBuffer_RT_int16( int16* pBuffer, uInt32
 					kC0 = (unsigned short) ((WorldMap_XCoord - (int16) (WorldMap_XCoord/Width) * Width) + 1);   // kC0 is given the value (WorldMap_XCoord - (WorldMap_XCoord/Width)*Width + 1)
 					kC1 = (unsigned short) (kC0 % (int16)Width + 1);                                            // kC1 is given the value: kC0 mod Width + 1
 					
+					//cout << "CAOB : created weighted intensity vector that defines a lin interp val, 440" << endl; //error check
 
 					// CREATE THE VECTOR OF WEIGHTED IINTENSITIES THAT DEFINES A LINEARLY INTERPOLATED VALUE.
 					// ---------------------------------------------------------------
@@ -426,6 +464,8 @@ uInt32 ConstructAOBuffer_RT_int16( int16* pBuffer, uInt32
 					if (ind1 > 12960000 || ind2 > 12960000 || ind3 > 12960000 || ind4 > 12960000 ) // returns error message for interpolation process if indices are extremely out of bounds
 						cout << "Problem\n" << endl;
 					
+					//cout << "CAOB : pixel index compared to four surrounding array indices, 453" << endl; //error check
+
 					// this is the final step in the interpolation process, where our pixel index 
 					// is compared to four surrounding indices in the array.
 					// ---------------------------------------------------------------
@@ -437,7 +477,7 @@ uInt32 ConstructAOBuffer_RT_int16( int16* pBuffer, uInt32
 					Image = ((Image*2.0/0.7 - 1.0) * ContPat) + 1.0; 	// Sets contrast to 2D pattern: [1-ContPat,1+ContPat] 
 					    // NOTE: ContPat is 'Contrast of Pattern Image'
 					
-
+					//cout << "CAOB : define Frames, 466" << endl; //error check
 
 					//__________________ADD WEIGHTED FLICKER INTENSITIES TO THE WORLD MAP INTENSITIES__________________
 						
@@ -463,20 +503,25 @@ uInt32 ConstructAOBuffer_RT_int16( int16* pBuffer, uInt32
 
 					//_________________________________________________________________________________________________
 
-
+					//cout << "CAOB : load initial Frames into pBuffer, 492" << endl; //error check
 
 					// Assign random values to pixel intensities (counter increments only if "Frames=0")
 					// ---------------------------------------------------------------
 					pBuffer[counter++] = (int16) (Frames);
 				}
 				
-				else {										// if: this is not the first Z signal repeat... 
+				else {	
+
+					//cout << "CAOB : load subsequent Frames into pBuffer, 501" << endl; //error check
+
+									// if: this is not the first Z signal repeat... 
 					pBuffer[counter++] = (int16) (Frames);  // then: ...set value Frames (defined in previous if statement) to pBuffer array
 					ct += 1;		                        // then: ...and increment ct by 1			
 				}
 			}
 		} // loop for idx1 iteration ends. 
 		
+		//cout << "CAOB : function end, empty pointers + frame counter, 510" << endl; //error check
 		//cout << "Count  = " << ct << endl;   
 
 	// empty all pointers as well as the frame counter idx3
