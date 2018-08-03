@@ -13,7 +13,7 @@ unsigned int Sub2Ind(float IMAGE_HEIGHT, float IMAGE_WIDTH, unsigned short ROW, 
 
 void CreateRandomFlicker_RT_int16(uInt32 frameCt, uInt32 Pixels, int16* tempLoc2, int16* tempLoc3, 
 									uInt32* picBufSize, int16* frameLag, uInt32 ref_Zero, uInt32 numBlocks, uInt16 framePersist, 
-									float* alpha0, float* alpha1, float* alphaN, uInt32* ptr1, uInt32* ptr2, float *ptrZ, uInt32* ptrNoise, string merge, MenuReturnValues mValues);
+									float* alpha0, float* alpha1, float* alphaN, uInt32* ptr1, uInt32* ptr2, float *ptrZ, uInt32* ptrNoise, uInt32* ptrP1, uInt32* ptrP2, string merge, MenuReturnValues mValues);
 
 
 

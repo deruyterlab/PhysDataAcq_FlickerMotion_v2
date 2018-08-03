@@ -95,7 +95,7 @@ MenuReturnValues::MenuReturnValues()
 	ANTrial				= 0; //added [6/7/2018]
 	AN					= 0; //added [6/7/2018]
 	PPPTrial			= 0; //added [11/14/2017]
-	PPP					= 0; //added [6/7/2018]
+	PropPair			= 0; //added [6/7/2018]
 
 }
 
@@ -131,7 +131,7 @@ std::ostream & operator <<(std::ostream & out , MenuReturnValues & mValues)
 	out << mValues.ANTrial				<< endl; //added [05/31/2018]
 	out << mValues.AN                   << endl; //added [5/18/2018]
 	out << mValues.PPPTrial				<< endl; //added [11/14/2017]
-	out << mValues.PPP					<< endl; //added [05/31/2018]
+	out << mValues.PropPair				<< endl; //added [05/31/2018]
 
 	return out;
 

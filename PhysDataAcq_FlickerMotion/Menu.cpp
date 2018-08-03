@@ -124,8 +124,8 @@ void Menu::fnReadUserInput()
 			break;
 		case 'Q':
 			cout << "PPP value (float) --------->";
-			cin >> mValues.PPP;
-
+			cin >> mValues.PropPair;
+			break;
 
 		case 'x':
 			cout << "Program execution halted. Exiting application!" << endl;
@@ -229,7 +229,7 @@ void Menu::fnMenuSettingsOption ( MenuReturnValues mValues )
 	cout << " N " << setiosflags(ios::left) << setw(25) <<"Added Noise active (=1/=0)"		<< setw(16) << mValues.ANTrial				<<  endl;
  	cout << " O " << setiosflags(ios::left) << setw(25) <<"Added Noise Contrast value"		<< setw(16) << mValues.AN					<<  endl;
 	cout << " P " << setiosflags(ios::left) << setw(25) <<"PPP active (=1/=0)"				<< setw(16) << mValues.PPPTrial				<<  endl;
-	cout << " Q " << setiosflags(ios::left) << setw(25) <<"PPP value"						<< setw(16) << mValues.PPP					<<  endl; // NOTE: if value is changed, program crashes [6/7/2018]
+	cout << " Q " << setiosflags(ios::left) << setw(25) <<"PPP value"						<< setw(16) << mValues.PropPair					<<  endl; // NOTE: if value is changed, program crashes [6/7/2018]
 	cout																					<<	endl;
 	cout << "**********************************************************************"		<<	endl;
 
